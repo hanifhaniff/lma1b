@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Upload, Download, File, Trash2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Upload, Download, File, Trash2, Loader2, Eye, EyeOff, Share } from 'lucide-react';
+import ShareModal from './ShareModal';
 
 export default function FilePageClient() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -28,7 +29,20 @@ export default function FilePageClient() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [deleteFileName, setDeleteFileName] = useState<string>('');
   const [fileToDelete, setFileToDelete] = useState<{fileKey: string, fileName: string} | null>(null);
+  const [shareModalOpen, setShareModalOpen] = useState<boolean>(false);
+  const [fileToShare, setFileToShare] = useState<{fileKey: string, fileName: string, passwordProtected: boolean} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [apiBaseUrl, setApiBaseUrl] = useState<string>('');
+  
+  // Set the API base URL on the client side
+  useEffect(() => {
+    const getApiBaseUrl = () => {
+      // Always use the same origin for API requests
+      return window.location.origin;
+    };
+    
+    setApiBaseUrl(getApiBaseUrl());
+  }, []);
 
   // Handle file selection
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +144,8 @@ export default function FilePageClient() {
     setIsFetchingFiles(true);
     setDownloadStatus('Fetching files...');
     try {
-      const response = await fetch('/api/file/list');
+      // Use the API base URL to ensure we're hitting the correct port
+      const response = await fetch(`${apiBaseUrl}/api/file/list`);
       if (response.ok) {
         const data = await response.json();
         setFiles(data.files);
@@ -172,8 +187,7 @@ export default function FilePageClient() {
         return;
       }
 
-      // Send password to the download endpoint via POST
-      const response = await fetch(`/api/file/download/${fileKey}`, {
+      const response = await fetch(`${apiBaseUrl}/api/file/download/${fileKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,8 +229,7 @@ export default function FilePageClient() {
         setDownloadStatus(`Download failed: ${errorMessage}`);
       }
     } else {
-      // For files without password, use GET request
-      const response = await fetch(`/api/file/download/${fileKey}`, {
+      const response = await fetch(`${apiBaseUrl}/api/file/download/${fileKey}`, {
         method: 'GET'
       });
       if (response.ok) {
@@ -263,7 +276,7 @@ export default function FilePageClient() {
     setDeleteDialogOpen(false);
 
     try {
-      const response = await fetch(`/api/file/delete/${fileToDelete.fileKey}`, {
+      const response = await fetch(`${apiBaseUrl}/api/file/delete/${fileToDelete.fileKey}`, {
         method: 'DELETE',
       });
 
@@ -276,6 +289,12 @@ export default function FilePageClient() {
     } catch (error) {
       setDownloadStatus(`Delete error: ${error}`);
     }
+  };
+
+  // Prepare for share
+  const prepareShare = (fileKey: string, fileName: string, hasPassword: boolean) => {
+    setFileToShare({ fileKey, fileName, passwordProtected: hasPassword });
+    setShareModalOpen(true);
   };
 
   return (
@@ -459,6 +478,13 @@ export default function FilePageClient() {
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  onClick={() => prepareShare(file.file_key, file.nama_file, !!file.password)}
+                                >
+                                  <Share className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   onClick={() => prepareDelete(file.file_key, file.nama_file)}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -533,6 +559,15 @@ export default function FilePageClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        fileKey={fileToShare?.fileKey || ''}
+        fileName={fileToShare?.fileName || ''}
+        isPasswordProtected={fileToShare?.passwordProtected || false}
+      />
     </div>
   );
 }

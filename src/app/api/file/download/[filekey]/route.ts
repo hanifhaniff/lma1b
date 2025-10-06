@@ -5,10 +5,10 @@ import s3Client from '@/lib/r2-client';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { filekey: string } }
+  { params }: { params: Promise<{ filekey: string }> }
 ) {
   try {
-    const { filekey } = params;
+    const { filekey } = await params;
     const { password } = await request.json();
     const bucketName = process.env.R2_BUCKET_NAME!;
     const supabase = getSupabaseClient();
@@ -62,10 +62,10 @@ export async function POST(
 // Handle GET request for files without passwords
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filekey: string } }
+  { params }: { params: Promise<{ filekey: string }> }
 ) {
   try {
-    const { filekey } = params;
+    const { filekey } = await params;
     const bucketName = process.env.R2_BUCKET_NAME!;
     const supabase = getSupabaseClient();
 

@@ -1,10 +1,10 @@
-import { DashboardNavbar } from "../dashboard/navbar";
+import { DashboardNavbar } from "@/app/dashboard/navbar";
 
-export default function FileLayout({
-  children,
-}: {
+interface FileLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+export default function FileLayout({ children }: FileLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <DashboardNavbar />

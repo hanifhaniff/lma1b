@@ -5,10 +5,10 @@ import getSupabaseClient from '@/lib/supabase-client';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filekey: string }> }
 ) {
   try {
-    const { filename } = params; // This is the file_key now
+    const { filekey } = await params; // This is the file_key now
     const bucketName = process.env.R2_BUCKET_NAME!;
     const supabase = getSupabaseClient();
 
@@ -16,7 +16,7 @@ export async function DELETE(
     const { data, error } = await supabase
       .from('files')
       .select('nama_file')
-      .eq('file_key', filename)
+      .eq('file_key', filekey)
       .single();
 
     if (error || !data) {
@@ -35,7 +35,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('files')
       .delete()
-      .eq('file_key', filename);
+      .eq('file_key', filekey);
 
     if (deleteError) {
       console.error('Database delete error:', deleteError);

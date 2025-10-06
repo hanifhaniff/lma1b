@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Moon, Sun, Menu, Laptop, Home, Settings, User, Plus, List, Ticket, Radio, File, Link as LinkIcon, ChevronDown } from "lucide-react";
@@ -79,7 +79,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
   }
 ];
 
-export function DashboardNavbar() {
+export function LinkNavbar() {
   const [open, setOpen] = useState(false);
   const { theme } = useTheme();
   const pathname = usePathname();
@@ -157,32 +157,6 @@ export function DashboardNavbar() {
               </Link>
             );
           })}
-          
-          {/* Laptop Dropdown Menu */}
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2">
-                <Laptop className="h-4 w-4" />
-                <span>Laptops</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuLabel>Laptop Management</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/laptops" className="flex items-center gap-2">
-                  <List className="h-4 w-4" />
-                  <span>View Laptops</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/laptops" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  <span>Add Laptop</span>
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
         </nav>
 
         {/* Right side actions */}
@@ -247,29 +221,6 @@ export function DashboardNavbar() {
                     </Link>
                   );
                 })}
-                
-                {/* Mobile Laptop Menu */}
-                <div className="pt-4 border-t">
-                  <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Laptop Management
-                  </p>
-                  <Link
-                    href="/laptops"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors text-muted-foreground hover:text-foreground"
-                    onClick={() => setOpen(false)}
-                  >
-                    <List className="h-4 w-4" />
-                    <span>View Laptops</span>
-                  </Link>
-                  <Link
-                    href="/laptops"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors text-muted-foreground hover:text-foreground"
-                    onClick={() => setOpen(false)}
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add Laptop</span>
-                  </Link>
-                </div>
               </div>
             </SheetContent>
           </Sheet>
