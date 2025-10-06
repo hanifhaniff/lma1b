@@ -25,7 +25,12 @@ export default function RadioPageClient({ initialRadios }: RadioPageClientProps)
     setError(null);
     try {
       // Use the server action directly
-      const radiosData = await fetch('/api/radios').then(res => res.json());
+      const response = await fetch('/api/radios');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      const radiosData = await response.json();
       setRadios(radiosData);
     } catch (error: unknown) {
       console.error('Error fetching radios:', error);
