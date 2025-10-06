@@ -16,7 +16,7 @@ export async function getRadios(): Promise<Radio[]> {
       throw new Error(`Failed to fetch radios: ${error.message}`);
     }
 
-    return data || [];
+    return (data as unknown as Radio[]) || [];
   } catch (error) {
     console.error('Error fetching radios:', error);
     throw error;
@@ -41,7 +41,7 @@ export async function getRadioById(id: number): Promise<Radio | null> {
       throw new Error(`Failed to fetch radio: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Radio;
   } catch (error) {
     console.error('Error fetching radio:', error);
     throw error;
@@ -53,7 +53,7 @@ export async function createRadio(radioData: NewRadio): Promise<Radio> {
   try {
     const { data, error } = await supabase
       .from('radio')
-      .insert([radioData])
+      .insert([radioData as unknown as Record<string, unknown>])
       .select()
       .single();
 
@@ -62,7 +62,7 @@ export async function createRadio(radioData: NewRadio): Promise<Radio> {
       throw new Error(`Failed to create radio: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Radio;
   } catch (error) {
     console.error('Error creating radio:', error);
     throw error;
@@ -84,7 +84,7 @@ export async function updateRadio(id: number, updateData: Partial<Radio>): Promi
       throw new Error(`Failed to update radio: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Radio;
   } catch (error) {
     console.error('Error updating radio:', error);
     throw error;

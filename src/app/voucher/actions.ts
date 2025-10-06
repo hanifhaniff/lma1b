@@ -16,7 +16,7 @@ export async function getVouchers(): Promise<Voucher[]> {
       throw new Error(`Failed to fetch vouchers: ${error.message}`);
     }
 
-    return data || [];
+    return (data as unknown as Voucher[]) || [];
   } catch (error) {
     console.error('Error fetching vouchers:', error);
     throw error;
@@ -41,7 +41,7 @@ export async function getVoucherById(kode_voucher: string): Promise<Voucher | nu
       throw new Error(`Failed to fetch voucher: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Voucher;
   } catch (error) {
     console.error('Error fetching voucher:', error);
     throw error;
@@ -59,7 +59,7 @@ export async function createVoucher(voucherData: NewVoucher): Promise<Voucher> {
     
     const { data, error } = await supabase
       .from('voucher')
-      .insert([processedData])
+      .insert([processedData as unknown as Record<string, unknown>])
       .select()
       .single();
 
@@ -68,7 +68,7 @@ export async function createVoucher(voucherData: NewVoucher): Promise<Voucher> {
       throw new Error(`Failed to create voucher: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Voucher;
   } catch (error) {
     console.error('Error creating voucher:', error);
     throw error;
@@ -96,7 +96,7 @@ export async function updateVoucher(kode_voucher: string, updateData: Partial<Vo
       throw new Error(`Failed to update voucher: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Voucher;
   } catch (error) {
     console.error('Error updating voucher:', error);
     throw error;
@@ -136,7 +136,7 @@ export async function updateVoucherStatus(kode_voucher: string, status: 'aktif' 
       throw new Error(`Failed to update voucher status: ${error.message}`);
     }
 
-    return data;
+    return data as unknown as Voucher;
   } catch (error) {
     console.error('Error updating voucher status:', error);
     throw error;
