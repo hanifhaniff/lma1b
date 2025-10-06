@@ -9,15 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  HardHat, 
-  Home, 
-  Hammer, 
-  Users, 
-  Award, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  HardHat,
+  Home,
+  Hammer,
+  Users,
+  Award,
+  Mail,
+  Phone,
+  MapPin,
   Star,
   ChevronRight,
   Menu,
@@ -27,9 +27,11 @@ import {
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 
 const ConstructionLandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isLoaded, isSignedIn } = useUser();
 
   // Services data
   const services = [
@@ -131,6 +133,11 @@ const ConstructionLandingPage = () => {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            {isLoaded && isSignedIn && (
+              <div className="hidden md:block">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            )}
             <Link href="/dashboard">
               <Button variant="outline" size="sm" aria-label="Dashboard">
                 Dashboard
