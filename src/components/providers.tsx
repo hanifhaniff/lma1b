@@ -14,8 +14,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
+        defaultTheme="light"
+        enableSystem={false}
         disableTransitionOnChange
         storageKey="lma-theme"
       >
@@ -28,8 +28,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ClerkProvider>
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
+        defaultTheme="light"
+        enableSystem={false}
         disableTransitionOnChange
         storageKey="lma-theme"
       >
