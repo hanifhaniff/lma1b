@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Laptop as ServiceLaptop } from "./laptop-service";
-import { Laptop as FormLaptop } from "./types";
+import { Laptop as FormLaptop } from "./laptop-service";
 import { LaptopForm } from "./laptop-form";
 import { createLaptop, updateLaptop } from "./laptop-service";
 import { toast } from "sonner";
@@ -24,11 +24,21 @@ export function LaptopDialog({ open, onOpenChange, laptop, onSuccess }: LaptopDi
       // Convert form data to service format
       const { image_url, date_received, ...laptopData } = data;
       
+      // Properly handle date conversion
+      let dateReceivedString = new Date().toISOString(); // default to now
+      if (date_received) {
+        if (date_received instanceof Date) {
+          dateReceivedString = date_received.toISOString();
+        } else if (typeof date_received === 'string') {
+          dateReceivedString = new Date(date_received).toISOString();
+        }
+      }
+      
       const serviceData = {
         ...laptopData,
         image_url: image_url || null,
         // Convert Date to string for API
-        date_received: date_received ? date_received.toISOString() : new Date().toISOString(),
+        date_received: dateReceivedString,
         // Ensure required fields are present
         name: laptopData.name || '',
         serial_number: laptopData.serial_number || '',
@@ -78,7 +88,7 @@ export function LaptopDialog({ open, onOpenChange, laptop, onSuccess }: LaptopDi
           </DialogTitle>
         </DialogHeader>
         <LaptopForm
-          laptop={laptop as unknown as FormLaptop}
+          laptop={laptop as FormLaptop}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isSubmitting={isSubmitting}

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "./data-table";
-import { Laptop as LaptopType } from "./types";
-import { getLaptops } from "./laptop-service";
+import { Laptop } from "./laptop-service";
+import { deleteLaptop, getLaptops } from "./laptop-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, Laptop as LaptopIcon, Plus } from "lucide-react";
 import { LaptopDialog } from "./laptop-dialog";
@@ -14,15 +14,15 @@ import { toast } from "sonner";
 
 export default function LaptopsPage() {
   const { user, isLoaded, isSignedIn } = useUser();
-  const [laptops, setLaptops] = useState<LaptopType[]>([]);
+  const [laptops, setLaptops] = useState<Laptop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // State for dialogs
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingLaptop, setEditingLaptop] = useState<LaptopType | null>(null);
+  const [editingLaptop, setEditingLaptop] = useState<Laptop | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [laptopToDelete, setLaptopToDelete] = useState<LaptopType | null>(null);
+  const [laptopToDelete, setLaptopToDelete] = useState<Laptop | null>(null);
 
   // Load data
   const fetchData = async () => {
@@ -31,13 +31,8 @@ export default function LaptopsPage() {
     try {
       const laptopsData = await getLaptops();
       
-      // Convert string dates to Date objects
-      const laptopsWithDates = laptopsData.map((laptop) => ({
-        ...laptop,
-        date_received: new Date(laptop.date_received),
-        created_at: new Date(laptop.created_at),
-      }));
-      setLaptops(laptopsWithDates);
+      // The data is already in the correct format from the service
+      setLaptops(laptopsData);
     } catch (error: unknown) {
       console.error("Error fetching laptops:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch laptops. Please check that the database table exists.";
@@ -48,11 +43,11 @@ export default function LaptopsPage() {
   };
 
   // Action handlers
-  const handleEdit = (laptop: LaptopType) => {
+  const handleEdit = (laptop: Laptop) => {
     setEditingLaptop(laptop);
   };
 
-  const handleDelete = (laptop: LaptopType) => {
+  const handleDelete = (laptop: Laptop) => {
     setLaptopToDelete(laptop);
     setIsDeleteDialogOpen(true);
   };
@@ -61,10 +56,7 @@ export default function LaptopsPage() {
     if (!laptopToDelete) return;
     
     try {
-      // Assuming there's a deleteLaptop function in laptop-service
-      await import('./laptop-service').then(module => {
-        module.deleteLaptop(laptopToDelete.id);
-      });
+      await deleteLaptop(laptopToDelete.id);
       toast.success("Laptop deleted successfully!");
       setIsDeleteDialogOpen(false);
       setLaptopToDelete(null);
@@ -73,6 +65,12 @@ export default function LaptopsPage() {
       console.error("Error deleting laptop:", error);
       toast.error("Failed to delete laptop");
     }
+  };
+
+  // Action handler for viewing laptops
+  const handleView = (laptop: Laptop) => {
+    // This will be handled by the DataTable component's internal state
+    // We don't need to do anything here as the modal is managed within the DataTable
   };
 
   useEffect(() => {
@@ -85,8 +83,8 @@ export default function LaptopsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-500" />
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Loading...</p>
         </div>
       </div>
     );
@@ -95,17 +93,17 @@ export default function LaptopsPage() {
   if (!isSignedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
-            <LaptopIcon className="h-12 w-12 mx-auto text-blue-500" />
-            <CardTitle className="text-2xl">Access Denied</CardTitle>
+            <LaptopIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <CardTitle className="text-xl">Access Denied</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+          <CardContent className="text-center">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Please sign in to access the laptop management system.
             </p>
             <Button 
-              onClick={() => window.location.href = '/'}
+              onClick={() => window.location.href = '/sign-in'}
               className="w-full"
             >
               Sign In
@@ -116,63 +114,53 @@ export default function LaptopsPage() {
     );
   }
 
-  return (
-    <div className="bg-gray-50/50 dark:bg-gray-900/50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Laptop Management</h1>
-              <p className="text-muted-foreground mt-1">
-                Track and manage company laptops
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={fetchData} 
-                variant="outline" 
-                size="sm"
-                disabled={loading}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? "Refreshing..." : "Refresh"}
+  if (error) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LaptopIcon className="h-5 w-5" />
+              Laptop Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-10">
+              <p className="text-red-500 mb-4">{error}</p>
+              <Button onClick={fetchData} variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
               </Button>
             </div>
-          </div>
-          
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <h3 className="text-red-800 font-medium flex items-center gap-2">
-                <span className="text-lg">⚠️</span> Error Loading Data
-              </h3>
-              <p className="text-red-600 text-sm mt-1">{error}</p>
-              <p className="text-red-600 text-sm mt-2">
-                Please make sure you have created the &apos;laptops&apos; table in your Supabase database.
-              </p>
-            </div>
-          )}
-          
-          <Card>
-            <CardHeader className="border-b">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <LaptopIcon className="h-5 w-5 text-blue-500" />
-                    Asset Inventory
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {loading ? "Loading laptops..." : `Showing ${laptops.length} laptops`}
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {!error && <DataTable data={laptops} onRefresh={fetchData} onEdit={handleEdit} onDelete={handleDelete} />}
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-10">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Laptop Management</h1>
+          <p className="text-muted-foreground">
+            Manage your laptop inventory, track users, and monitor BAST numbers.
+          </p>
+        </div>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add Laptop
+        </Button>
+      </div>
+      <Card>
+        <CardContent className="p-6">
+          <DataTable
+            data={laptops}
+            onRefresh={fetchData}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </CardContent>
+      </Card>
       
       {/* Add/Edit Laptop Dialog */}
       <LaptopDialog
@@ -183,7 +171,7 @@ export default function LaptopsPage() {
             setEditingLaptop(null);
           }
         }}
-        laptop={editingLaptop as any || undefined}
+        laptop={editingLaptop || undefined}
         onSuccess={() => {
           fetchData(); // Refresh data when a laptop is added/updated
         }}

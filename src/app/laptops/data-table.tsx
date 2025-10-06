@@ -33,61 +33,49 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Laptop } from "./types";
+import { Laptop } from "./laptop-service";
 import { useState } from "react";
-import { PlusCircle, ChevronDown, Columns3, Search } from "lucide-react";
-import { LaptopDialog } from "./laptop-dialog";
-import { ConfirmDialog } from "./confirm-dialog";
-import { toast } from "sonner";
-import { deleteLaptop } from "./laptop-service";
+import { ChevronDown, Columns3, Search } from "lucide-react";
 import { getLaptopColumns } from "./columns";
+import { LaptopViewModal } from "./LaptopViewModal"; // Import the view modal
 
 interface DataTableProps {
   data: Laptop[];
   onRefresh: () => void; // Function to refresh data
   onEdit: (laptop: Laptop) => void;
   onDelete: (laptop: Laptop) => void;
+  onView?: (laptop: Laptop) => void; // Optional view handler
 }
 
-export function DataTable({ data, onRefresh, onEdit, onDelete }: DataTableProps) {
+export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // State for dialogs
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingLaptop, setEditingLaptop] = useState<Laptop | undefined>(undefined);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [laptopToDelete, setLaptopToDelete] = useState<Laptop | null>(null);
+  const [viewingLaptop, setViewingLaptop] = useState<Laptop | null>(null); // State for viewing laptop
 
   // Action handlers
-  const handleEdit = (laptop: Laptop) => {
-    setEditingLaptop(laptop);
-  };
-
-  const handleDelete = (laptop: Laptop) => {
-    setLaptopToDelete(laptop);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!laptopToDelete) return;
-    
-    try {
-      await deleteLaptop(laptopToDelete.id);
-      toast.success("Laptop deleted successfully!");
-      setIsDeleteDialogOpen(false);
-      setLaptopToDelete(null);
-      onRefresh(); // Refresh the data after successful deletion
-    } catch (error) {
-      console.error("Error deleting laptop:", error);
-      toast.error("Failed to delete laptop");
+  const handleView = (laptop: Laptop) => {
+    if (onView) {
+      // If an onView function is provided via props, use it
+      onView(laptop);
+    } else {
+      // Otherwise, use local state to show the modal
+      setViewingLaptop(laptop);
     }
   };
 
+  const handleEdit = (laptop: Laptop) => {
+    onEdit(laptop);
+  };
+
+  const handleDelete = (laptop: Laptop) => {
+    onDelete(laptop);
+  };
+
   // Get columns with action handlers
-  const columns = getLaptopColumns(onEdit, onDelete);
+  const columns = getLaptopColumns(onEdit, onDelete, handleView);
 
   const table = useReactTable({
     data,
@@ -97,6 +85,11 @@ export function DataTable({ data, onRefresh, onEdit, onDelete }: DataTableProps)
       columnVisibility,
       rowSelection,
       columnFilters,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 20, // Set default page size to 20
+      },
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -117,7 +110,7 @@ export function DataTable({ data, onRefresh, onEdit, onDelete }: DataTableProps)
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Filter by user..."
+            placeholder="Filter by assigned user..."
             value={(table.getColumn("assigned_user")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("assigned_user")?.setFilterValue(event.target.value)
@@ -152,9 +145,6 @@ export function DataTable({ data, onRefresh, onEdit, onDelete }: DataTableProps)
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={() => setIsAddDialogOpen(true)} size="sm">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Laptop
-          </Button>
         </div>
       </div>
       <div className="rounded-md border">
@@ -210,33 +200,63 @@ export function DataTable({ data, onRefresh, onEdit, onDelete }: DataTableProps)
             )}
           </TableBody>
         </Table>
+        
+        {/* Pagination */}
+        <div className="flex items-center justify-between space-x-2 py-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredRowModel().rows.length} row(s) total.
+          </div>
+          <div className="flex items-center space-x-6 lg:space-x-8">
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium">Rows per page</p>
+              <select
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => {
+                  table.setPageSize(Number(e.target.value));
+                }}
+                className="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm"
+              >
+                {[10, 20, 30, 40, 50, 100].map((pageSize) => (
+                  <option key={pageSize} value={pageSize}>
+                    {pageSize}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount().toLocaleString()}
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
       
-      {/* Add/Edit Laptop Dialog */}
-      <LaptopDialog
-        open={isAddDialogOpen || !!editingLaptop}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsAddDialogOpen(false);
-            setEditingLaptop(undefined);
-          }
-        }}
-        laptop={editingLaptop as any}
-        onSuccess={() => {
-          onRefresh(); // Refresh data when a laptop is added/updated
-        }}
-      />
       
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        title="Delete Laptop"
-        description={`Are you sure you want to delete the laptop "${laptopToDelete?.name}"? This action cannot be undone.`}
-        onConfirm={confirmDelete}
-        confirmText="Delete"
-        cancelText="Cancel"
-      />
+      {/* View Laptop Modal - Only render if viewingLaptop is set */}
+      {viewingLaptop && (
+        <LaptopViewModal
+          laptop={viewingLaptop}
+          onClose={() => setViewingLaptop(null)}
+        />
+      )}
     </div>
   );
 }

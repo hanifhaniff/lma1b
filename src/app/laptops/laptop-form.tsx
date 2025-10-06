@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Laptop } from "./types";
+import { Laptop } from "./laptop-service";
 
 const laptopFormSchema = z.object({
   name: z.string().min(2, {
@@ -75,7 +75,11 @@ export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopF
       asset_number: laptop?.asset_number || "",
       model_type: laptop?.model_type || "",
       no_bast: laptop?.no_bast || "",
-      date_received: laptop?.date_received ? new Date(laptop.date_received) : new Date(),
+      date_received: laptop?.date_received 
+        ? (laptop.date_received instanceof Date 
+            ? laptop.date_received 
+            : new Date(laptop.date_received))
+        : new Date(),
       condition: laptop?.condition as "New" | "Good" | "Fair" | "Damaged" || "Good",
       notes: laptop?.notes || "",
       image_url: laptop?.image_url || "",
