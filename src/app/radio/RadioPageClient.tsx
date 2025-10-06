@@ -72,7 +72,7 @@ export default function RadioPageClient({ initialRadios }: RadioPageClientProps)
               Please sign in to access the radio management system.
             </p>
             <Button 
-              onClick={() => window.location.href = '/sign-in'}
+              onClick={() => window.location.href = '/'}
               className="w-full"
             >
               Sign In

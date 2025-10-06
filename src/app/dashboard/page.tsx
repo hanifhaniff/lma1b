@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   BarChart, 
   Bar, 
@@ -88,6 +89,12 @@ export default function DashboardPage() {
             <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
               Please sign in to access the dashboard.
             </p>
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className="w-full"
+            >
+              Sign In
+            </Button>
           </CardContent>
         </Card>
       </div>

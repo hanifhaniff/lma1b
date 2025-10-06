@@ -104,6 +104,12 @@ export default function LaptopsPage() {
             <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
               Please sign in to access the laptop management system.
             </p>
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className="w-full"
+            >
+              Sign In
+            </Button>
           </CardContent>
         </Card>
       </div>

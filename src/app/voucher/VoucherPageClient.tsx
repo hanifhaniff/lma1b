@@ -90,7 +90,7 @@ export default function VoucherPageClient({ initialVouchers }: VoucherPageClient
               Please sign in to access the voucher management system.
             </p>
             <Button 
-              onClick={() => window.location.href = '/sign-in'}
+              onClick={() => window.location.href = '/'}
               className="w-full"
             >
               Sign In

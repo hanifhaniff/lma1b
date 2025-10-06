@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -34,12 +35,49 @@ const deleteSharedLink = async (shareId: string): Promise<boolean> => {
 };
 
 export default function LinkManagementPage() {
+  const { user, isLoaded, isSignedIn } = useUser();
   const [sharedLinks, setSharedLinks] = useState<SharedLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [shareToDelete, setShareToDelete] = useState<SharedLink | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Check authentication status
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" />
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center">
+            <LinkIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <CardTitle className="text-xl">Access Denied</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Please sign in to access the link management system.
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className="w-full"
+            >
+              Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+}
   
   const loadSharedLinks = async () => {
     try {
@@ -54,8 +92,10 @@ export default function LinkManagementPage() {
   };
 
   useEffect(() => {
-    loadSharedLinks();
-  }, []);
+    if (isLoaded && isSignedIn) {
+      loadSharedLinks();
+    }
+  }, [isLoaded, isSignedIn]);
 
   const handleDelete = async () => {
     if (!shareToDelete) return;
