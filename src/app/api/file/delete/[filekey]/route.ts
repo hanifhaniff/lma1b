@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import s3Client from '@/lib/r2-client';
-import supabase from '@/lib/supabase-client';
+import getSupabaseClient from '@/lib/supabase-client';
 
 export async function DELETE(
   request: NextRequest,
@@ -10,6 +10,7 @@ export async function DELETE(
   try {
     const { filename } = params; // This is the file_key now
     const bucketName = process.env.R2_BUCKET_NAME!;
+    const supabase = getSupabaseClient();
 
     // Get file information from the database to get the actual filename
     const { data, error } = await supabase
@@ -25,7 +26,7 @@ export async function DELETE(
     // Delete object from R2 using the actual filename
     const command = new DeleteObjectCommand({
       Bucket: bucketName,
-      Key: data.nama_file, // Use the actual filename stored in the database
+      Key: data.nama_file as string, // Use the actual filename stored in the database
     });
 
     await s3Client.send(command);

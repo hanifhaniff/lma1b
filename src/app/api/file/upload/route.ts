@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import s3Client from '@/lib/r2-client';
-import supabase from '@/lib/supabase-client';
+import getSupabaseClient from '@/lib/supabase-client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     await s3Client.send(command);
 
     // Store file information in the database
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('files')
       .insert([

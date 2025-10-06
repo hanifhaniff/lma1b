@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import supabase from '@/lib/supabase-client';
+import getSupabaseClient from '@/lib/supabase-client';
 import s3Client from '@/lib/r2-client';
 
 export async function POST(
@@ -11,6 +11,7 @@ export async function POST(
     const { filekey } = params;
     const { password } = await request.json();
     const bucketName = process.env.R2_BUCKET_NAME!;
+    const supabase = getSupabaseClient();
 
     // Get file information from the database
     const { data, error } = await supabase
@@ -31,7 +32,7 @@ export async function POST(
     // Get object from R2 using the stored filename
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: data.nama_file, // Use the original filename
+      Key: data.nama_file as string, // Use the original filename
     });
 
     const response = await s3Client.send(command);
@@ -66,6 +67,7 @@ export async function GET(
   try {
     const { filekey } = params;
     const bucketName = process.env.R2_BUCKET_NAME!;
+    const supabase = getSupabaseClient();
 
     // Get file information from the database
     const { data, error } = await supabase
@@ -86,7 +88,7 @@ export async function GET(
     // Get object from R2 using the stored filename
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: data.nama_file, // Use the original filename
+      Key: data.nama_file as string, // Use the original filename
     });
 
     const response = await s3Client.send(command);

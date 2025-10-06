@@ -1,8 +1,9 @@
-import supabase from '@/lib/supabase-client';
+import getSupabaseClient from '@/lib/supabase-client';
 
 export async function GET() {
   try {
     // Get all files from the database
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('files')
       .select('file_key, nama_file, password, created_at')
