@@ -327,9 +327,11 @@ const ConstructionLandingPage = () => {
                       <div className="text-muted-foreground">Years Experience</div>
                     </div>
                   </div>
-                  <Button size="lg">
-                    Learn More About Us
-                  </Button>
+                  <a href="https://lmacontractor.com" target="_blank" rel="noopener noreferrer">
+                    <Button size="lg">
+                      Learn More About Us
+                    </Button>
+                  </a>
                 </div>
                 <div className="lg:w-1/2">
                   <div className="grid grid-cols-2 gap-4">
@@ -426,7 +428,7 @@ const ConstructionLandingPage = () => {
                       <Phone className="h-6 w-6 text-blue-500 mt-1" />
                       <div>
                         <h4 className="font-semibold">Phone</h4>
-                        <p className="text-muted-foreground">(555) 123-4567</p>
+                        <p className="text-muted-foreground">(021) 8250-365</p>
                       </div>
                     </div>
                     
@@ -601,7 +603,7 @@ const ConstructionLandingPage = () => {
                 <address className="not-italic text-blue-200">
                   <div className="mb-2">Jl. Raya Narogong, Cileungsi, Jawa Barat</div>
                   <div className="mb-2">Indonesia</div>
-                  <div className="mb-2">(555) 123-4567</div>
+                  <div className="mb-2">(021) 8250-365</div>
                   <div>hanif@lmacontractor.com</div>
                 </address>
               </div>
