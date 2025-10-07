@@ -22,7 +22,10 @@ import {
   ChevronRight,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  Earth,
+  Car,
+  Shovel
 } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -36,24 +39,24 @@ const ConstructionLandingPage = () => {
   // Services data
   const services = [
     {
-      icon: <Home className="h-10 w-10 text-blue-500" />,
-      title: "Residential Construction",
-      description: "Custom homes, renovations, and remodeling projects tailored to your vision."
-    },
-    {
-      icon: <Hammer className="h-10 w-10 text-blue-500" />,
-      title: "Commercial Construction",
-      description: "Office buildings, retail spaces, and commercial facilities built to last."
-    },
-    {
       icon: <HardHat className="h-10 w-10 text-blue-500" />,
-      title: "Renovation & Remodeling",
-      description: "Transform existing spaces with our expert renovation and remodeling services."
+      title: "General Contractor",
+      description: "Comprehensive construction services from planning to completion."
     },
     {
-      icon: <Award className="h-10 w-10 text-blue-500" />,
-      title: "Project Management",
-      description: "End-to-end project management ensuring timely, budget-conscious delivery."
+      icon: <Earth className="h-10 w-10 text-blue-500" />,
+      title: "Earthwork",
+      description: "Excavation, grading, and site preparation services for any project."
+    },
+    {
+      icon: <Car className="h-10 w-10 text-blue-500" />,
+      title: "Equipment Rent",
+      description: "Wide range of construction equipment available for short or long-term rental."
+    },
+    {
+      icon: <Shovel className="h-10 w-10 text-blue-500" />,
+      title: "Mining Contractor",
+      description: "Specialized mining services with experienced professionals and proper equipment."
     }
   ];
 
@@ -193,7 +196,7 @@ const ConstructionLandingPage = () => {
           </div>
           <div className="container px-4 mx-auto relative z-10">
             <div className="flex flex-col items-center text-center text-white">
-              <Badge className="mb-4 bg-blue-500 text-white">EST. 2025</Badge>
+              <Badge className="mb-4 bg-blue-500 text-white">EST. 1994</Badge>
               <h1 className="text-4xl md:text-6xl font-bold mb-6 max-w-3xl">
                 Lancarjaya Mandiri Abadi
               </h1>
@@ -308,11 +311,11 @@ const ConstructionLandingPage = () => {
             <div className="max-w-6xl mx-auto">
               <div className="flex flex-col lg:flex-row items-center gap-12">
                 <div className="lg:w-1/2">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6">About BuildPro Construction</h2>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6">About PT.Lancarjaya Mandiri Abadi</h2>
                   <p className="text-lg text-muted-foreground mb-6">
-                    For over 15 years, BuildPro has been delivering exceptional construction projects 
-                    with a commitment to quality, safety, and customer satisfaction. Our team of 
-                    experienced professionals brings expertise and innovation to every project.
+                    PT Lancarjaya Mandiri Abadi (LMA) is a premier general contractor in Indonesia, renowned for exceptional and timely service. 
+                    As a trusted partner for both government and private clients, we are executing an aggressive expansion strategy, backed by our expert team.
+                    Our core capabilities span from earthworks and mining construction to transportation.
                   </p>
                   <div className="grid grid-cols-2 gap-6 mb-8">
                     <div className="text-center p-4 border rounded-lg">
@@ -320,7 +323,7 @@ const ConstructionLandingPage = () => {
                       <div className="text-muted-foreground">Projects Completed</div>
                     </div>
                     <div className="text-center p-4 border rounded-lg">
-                      <div className="text-3xl font-bold text-blue-500">15+</div>
+                      <div className="text-3xl font-bold text-blue-500">30+</div>
                       <div className="text-muted-foreground">Years Experience</div>
                     </div>
                   </div>
@@ -431,7 +434,7 @@ const ConstructionLandingPage = () => {
                       <Mail className="h-6 w-6 text-blue-500 mt-1" />
                       <div>
                         <h4 className="font-semibold">Email</h4>
-                        <p className="text-muted-foreground">info@buildpro.com</p>
+                        <p className="text-muted-foreground">hanif@lmacontractor.com.com</p>
                       </div>
                     </div>
                     
@@ -439,7 +442,8 @@ const ConstructionLandingPage = () => {
                       <MapPin className="h-6 w-6 text-blue-500 mt-1" />
                       <div>
                         <h4 className="font-semibold">Address</h4>
-                        <p className="text-muted-foreground">123 Construction Ave, Building City, BC 12345</p>
+                        <p className="text-muted-foreground">
+                          Jl. Raya Narogong, Cileungsi, Jawa Barat, Indonesia</p>
                       </div>
                     </div>
                   </div>
@@ -496,19 +500,19 @@ const ConstructionLandingPage = () => {
                           <div className="grid grid-cols-2 gap-2 mt-2">
                             <Label className="flex items-center gap-2">
                               <Input type="checkbox" />
-                              <span>Residential</span>
+                              <span>General Contractor</span>
                             </Label>
                             <Label className="flex items-center gap-2">
                               <Input type="checkbox" />
-                              <span>Commercial</span>
+                              <span>Earthwork</span>
                             </Label>
                             <Label className="flex items-center gap-2">
                               <Input type="checkbox" />
-                              <span>Renovation</span>
+                              <span>Heavy Equipment Rental</span>
                             </Label>
                             <Label className="flex items-center gap-2">
                               <Input type="checkbox" />
-                              <span>Other</span>
+                              <span>Mining Contractor</span>
                             </Label>
                           </div>
                         </div> */}
@@ -545,25 +549,25 @@ const ConstructionLandingPage = () => {
                   height={32} 
                   className="h-8 w-8 text-blue-400"
                 />
-                <span className="text-xl font-bold">&quot;BuildPro&quot;</span>
+                <span className="text-xl font-bold">PT.LMA</span>
               </div>
                 <p className="text-blue-200 mb-4">
-                  Professional construction services with over 15 years of experience.
+                  Professional construction services with over 30 years of experience.
                 </p>
                 <div className="flex gap-4 justify-center md:justify-start">
-                  <Link href="#" className="text-blue-200 hover:text-white">
+                  <Link href="https://www.facebook.com/ptlma/" className="text-blue-200 hover:text-white">
                     <span className="sr-only">Facebook</span>
                     <div className="h-8 w-8 rounded-full border border-blue-500 flex items-center justify-center">
                       <span className="text-xs">f</span>
                     </div>
                   </Link>
-                  <Link href="#" className="text-blue-200 hover:text-white">
+                  <Link href="https://www.instagram.com/ptlma_id/" className="text-blue-200 hover:text-white">
                     <span className="sr-only">Instagram</span>
                     <div className="h-8 w-8 rounded-full border border-blue-500 flex items-center justify-center">
                       <span className="text-xs">ig</span>
                     </div>
                   </Link>
-                  <Link href="#" className="text-blue-200 hover:text-white">
+                  <Link href="https://www.linkedin.com/company/pt-lancarjaya-mandiri-abadi-id/" className="text-blue-200 hover:text-white">
                     <span className="sr-only">LinkedIn</span>
                     <div className="h-8 w-8 rounded-full border border-blue-500 flex items-center justify-center">
                       <span className="text-xs">in</span>
@@ -575,32 +579,30 @@ const ConstructionLandingPage = () => {
               <div className="text-center md:text-left">
                 <h3 className="text-lg font-semibold mb-4">Services</h3>
                 <ul className="space-y-2">
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Residential Construction</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Commercial Construction</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Renovation & Remodeling</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Project Management</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Design & Build</Link></li>
+                  <li><Link href="#" className="text-blue-200 hover:text-white">General Contractor</Link></li>
+                  <li><Link href="#" className="text-blue-200 hover:text-white">Earthwork</Link></li>
+                  <li><Link href="#" className="text-blue-200 hover:text-white">Heavy Equipment Rental</Link></li>
+                  <li><Link href="#" className="text-blue-200 hover:text-white">Mining Contractor</Link></li>
                 </ul>
               </div>
 
               <div className="text-center md:text-left">
                 <h3 className="text-lg font-semibold mb-4">Company</h3>
                 <ul className="space-y-2">
-                  <li><Link href="#" className="text-blue-200 hover:text-white">About Us</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Our Team</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Projects</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Careers</Link></li>
-                  <li><Link href="#" className="text-blue-200 hover:text-white">Blog</Link></li>
+                  <li><Link href="#about" className="text-blue-200 hover:text-white">About Us</Link></li>
+                  <li><Link href="#projects" className="text-blue-200 hover:text-white">Projects</Link></li>
+                  <li><Link href="https://id.jobstreet.com/id/companies/lancarjaya-mandiri-abadi-168557984861565" className="text-blue-200 hover:text-white">Careers</Link></li>
+                  <li><Link href="https://lmacontractor.com" className="text-blue-200 hover:text-white">Blog</Link></li>
                 </ul>
               </div>
 
               <div className="text-center md:text-left">
                 <h3 className="text-lg font-semibold mb-4">Contact</h3>
                 <address className="not-italic text-blue-200">
-                  <div className="mb-2">123 Construction Ave</div>
-                  <div className="mb-2">Building City, BC 12345</div>
+                  <div className="mb-2">Jl. Raya Narogong, Cileungsi, Jawa Barat</div>
+                  <div className="mb-2">Indonesia</div>
                   <div className="mb-2">(555) 123-4567</div>
-                  <div>info@buildpro.com</div>
+                  <div>hanif@lmacontractor.com</div>
                 </address>
               </div>
             </div>
@@ -608,7 +610,8 @@ const ConstructionLandingPage = () => {
             <Separator className="my-8 bg-blue-800" />
 
             <div className="text-center text-sm text-blue-300">
-              © {new Date().getFullYear()} BuildPro Construction. All rights reserved.
+              {/* © {new Date().getFullYear()} PT.Lancarjaya Mandiri Abadi. All rights reserved. */}
+              Made With ❤ by PT.Lancarjaya Mandiri Abadi
             </div>
           </div>
         </div>
