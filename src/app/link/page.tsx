@@ -42,6 +42,24 @@ export default function LinkManagementPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [shareToDelete, setShareToDelete] = useState<SharedLink | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  const loadSharedLinks = async () => {
+    try {
+      setLoading(true);
+      const links = await fetchSharedLinks();
+      setSharedLinks(links);
+    } catch (error) {
+      console.error('Error fetching shared links:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      loadSharedLinks();
+    }
+  }, [isLoaded, isSignedIn]);
 
   // Check authentication status
   if (!isLoaded) {
@@ -67,7 +85,7 @@ export default function LinkManagementPage() {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Please sign in to access the link management system.
             </p>
-            <Button 
+            <Button
               onClick={() => window.location.href = '/'}
               className="w-full"
             >
@@ -78,24 +96,6 @@ export default function LinkManagementPage() {
       </div>
     );
 }
-  
-  const loadSharedLinks = async () => {
-    try {
-      setLoading(true);
-      const links = await fetchSharedLinks();
-      setSharedLinks(links);
-    } catch (error) {
-      console.error('Error fetching shared links:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      loadSharedLinks();
-    }
-  }, [isLoaded, isSignedIn]);
 
   const handleDelete = async () => {
     if (!shareToDelete) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,13 +44,7 @@ export default function ShareModal({
     setApiBaseUrl(getApiBaseUrl());
   }, []);
 
-  useEffect(() => {
-    if (isOpen && fileKey) {
-      generateShareLink();
-    }
-  }, [isOpen, fileKey]);
-
-  const generateShareLink = async () => {
+  const generateShareLink = useCallback(async () => {
     setLoading(true);
     try {
       // Use the API base URL to ensure we're hitting the correct port
@@ -83,7 +77,13 @@ export default function ShareModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiBaseUrl, fileKey]);
+
+  useEffect(() => {
+    if (isOpen && fileKey) {
+      generateShareLink();
+    }
+  }, [isOpen, fileKey, generateShareLink]);
 
   const copyToClipboard = () => {
     if (shareUrl) {
