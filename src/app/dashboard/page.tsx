@@ -111,7 +111,7 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Asset Dashboard</h1>
               <p className="text-muted-foreground mt-1">
-                Overview of company assets and management
+                Just A DUMMY dashboard for managing company laptops
               </p>
             </div>
           </div>

@@ -284,7 +284,7 @@ export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopF
                     size="sm"
                     onClick={() => {
                       // Generate a random dummy image URL with laptop-related text
-                      const laptopNames = ["MacBook Pro", "Lenovo Legion", "Lenovo Thinkpad", "Asus ROG", "Lenovo LOQ"];
+                      const laptopNames = ["Laptop", "Laptop", "Laptop", "Laptop", "Laptop"];
                       const randomLaptop = laptopNames[Math.floor(Math.random() * laptopNames.length)];
                       const width = 400;
                       const height = 400;

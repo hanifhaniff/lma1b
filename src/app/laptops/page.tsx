@@ -127,9 +127,18 @@ export default function LaptopsPage() {
           <CardContent>
             <div className="text-center py-10">
               <p className="text-red-500 mb-4">{error}</p>
-              <Button onClick={fetchData} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
+              <Button onClick={fetchData} variant="outline" disabled={loading}>
+                {loading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Retry
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
@@ -158,6 +167,7 @@ export default function LaptopsPage() {
             onRefresh={fetchData}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            loading={loading}
           />
         </CardContent>
       </Card>

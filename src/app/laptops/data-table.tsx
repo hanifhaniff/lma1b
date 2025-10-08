@@ -45,9 +45,10 @@ interface DataTableProps {
   onEdit: (laptop: Laptop) => void;
   onDelete: (laptop: Laptop) => void;
   onView?: (laptop: Laptop) => void; // Optional view handler
+  loading?: boolean; // Loading state
 }
 
-export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTableProps) {
+export function DataTable({ data, onRefresh, onEdit, onDelete, onView, loading = false }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -105,7 +106,7 @@ export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTab
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-10 py-6 px-3">
         <div className="relative max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -171,7 +172,20 @@ export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTab
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              // Loading state
+              <TableRow>
+                <TableCell 
+                  colSpan={columns.length}
+                  className="h-48 text-center"
+                >
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mb-3"></div>
+                    <p className="text-gray-500">Loading laptops...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -204,7 +218,7 @@ export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTab
         {/* Pagination */}
         <div className="flex items-center justify-between space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredRowModel().rows.length} row(s) total.
+            {loading ? 0 : table.getFilteredRowModel().rows.length} row(s) total.
           </div>
           <div className="flex items-center space-x-6 lg:space-x-8">
             <div className="flex items-center space-x-2">
@@ -215,6 +229,7 @@ export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTab
                   table.setPageSize(Number(e.target.value));
                 }}
                 className="h-8 w-[70px] rounded-md border border-input bg-background px-2 py-1 text-sm"
+                disabled={loading}
               >
                 {[10, 20, 30, 40, 50, 100].map((pageSize) => (
                   <option key={pageSize} value={pageSize}>
@@ -232,7 +247,7 @@ export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTab
                 variant="outline"
                 size="sm"
                 onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                disabled={!table.getCanPreviousPage() || loading}
               >
                 Previous
               </Button>
@@ -240,7 +255,7 @@ export function DataTable({ data, onRefresh, onEdit, onDelete, onView }: DataTab
                 variant="outline"
                 size="sm"
                 onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                disabled={!table.getCanNextPage() || loading}
               >
                 Next
               </Button>
