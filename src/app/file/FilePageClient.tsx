@@ -302,7 +302,7 @@ export default function FilePageClient() {
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">File Management</CardTitle>
-          <CardDescription>Upload, store, and download files using Cloudflare R2</CardDescription>
+          <CardDescription>Upload, store, and Secure File</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-8">
