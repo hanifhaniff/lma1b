@@ -85,7 +85,13 @@ The file management system supports password protection for uploaded files:
 The file sharing system allows users to generate shareable links:
 
 1. Users can generate unique shareable links for their files
-2. Shareable links expire after 7 days by default
+2. Shareable links can have different expiration durations:
+   - 1 hour
+   - 24 hours
+   - 3 days
+   - 7 days (default)
+   - 30 days
+   - Unlimited (no expiration)
 3. Password-protected files maintain their protection when shared
 4. The system tracks all shared links in the database
 

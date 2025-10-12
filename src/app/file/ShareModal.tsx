@@ -22,6 +22,15 @@ interface ShareModalProps {
   isPasswordProtected: boolean;
 }
 
+const EXPIRATION_OPTIONS = [
+  { label: '1 hour', value: 1, unit: 'hours' },
+  { label: '24 hours', value: 1, unit: 'days' },
+  { label: '3 days', value: 3, unit: 'days' },
+  { label: '7 days', value: 7, unit: 'days' },
+  { label: '30 days', value: 30, unit: 'days' },
+  { label: 'Unlimited', value: null, unit: null },
+];
+
 export default function ShareModal({
   isOpen,
   onClose,
@@ -33,6 +42,8 @@ export default function ShareModal({
   const [loading, setLoading] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [apiBaseUrl, setApiBaseUrl] = useState<string>('');
+  const [selectedExpiration, setSelectedExpiration] = useState(EXPIRATION_OPTIONS[3]); // Default to 7 days
+  const [linkGenerated, setLinkGenerated] = useState<boolean>(false);
   
   // Set the API base URL on the client side
   useEffect(() => {
@@ -47,12 +58,33 @@ export default function ShareModal({
   const generateShareLink = useCallback(async () => {
     setLoading(true);
     try {
+      // Calculate expiration date based on selected option
+      let expiresAt = null;
+      if (selectedExpiration.value !== null) {
+        expiresAt = new Date();
+        if (selectedExpiration.unit === 'hours') {
+          expiresAt.setHours(expiresAt.getHours() + selectedExpiration.value);
+        } else {
+          expiresAt.setDate(expiresAt.getDate() + selectedExpiration.value);
+        }
+      }
+      
       // Use the API base URL to ensure we're hitting the correct port
-      const response = await fetch(`${apiBaseUrl}/api/file/share/${fileKey}`);
+      const response = await fetch(`${apiBaseUrl}/api/file/share/${fileKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        }),
+      });
+      
       const data = await response.json();
       
       if (response.ok) {
         setShareUrl(data.shareUrl);
+        setLinkGenerated(true);
       } else {
         if (data.setupRequired) {
           toast.error(
@@ -77,13 +109,16 @@ export default function ShareModal({
     } finally {
       setLoading(false);
     }
-  }, [apiBaseUrl, fileKey]);
+  }, [apiBaseUrl, fileKey, selectedExpiration]);
 
   useEffect(() => {
     if (isOpen && fileKey) {
-      generateShareLink();
+      // Reset state when modal opens
+      setShareUrl(null);
+      setLinkGenerated(false);
     }
-  }, [isOpen, fileKey, generateShareLink]);
+  }, [isOpen, fileKey]);
+
 
   const copyToClipboard = () => {
     if (shareUrl) {
@@ -92,6 +127,12 @@ export default function ShareModal({
       toast.success('Share link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleGenerateLink = () => {
+    setShareUrl(null);
+    setLinkGenerated(false);
+    generateShareLink();
   };
 
   return (
@@ -105,40 +146,74 @@ export default function ShareModal({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex items-center space-x-2 pt-4">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="link" className="sr-only">
-              Link
+        <div className="space-y-4 pt-4">
+          <div>
+            <Label htmlFor="expiration" className="text-sm font-medium">
+              Link expiration
             </Label>
-            <Input
-              id="link"
-              value={shareUrl || 'Generating...'}
-              readOnly
-              disabled={loading}
-              className="h-10"
-            />
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              {EXPIRATION_OPTIONS.map((option) => (
+                <Button
+                  key={option.label}
+                  type="button"
+                  variant={selectedExpiration.label === option.label ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedExpiration(option)}
+                  disabled={loading}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
           </div>
+          
           <Button
             type="button"
-            size="sm"
-            className="px-3"
-            onClick={copyToClipboard}
-            disabled={!shareUrl || loading}
+            onClick={handleGenerateLink}
+            disabled={loading}
+            className="w-full"
           >
-            {copied ? (
-              'Copied!'
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
             ) : (
-              <Copy className="h-4 w-4" />
+              'Generate Share Link'
             )}
           </Button>
+          
+          {linkGenerated && (
+            <div className="flex items-center space-x-2">
+              <div className="grid flex-1 gap-2">
+                <Label htmlFor="link" className="sr-only">
+                  Link
+                </Label>
+                <Input
+                  id="link"
+                  value={shareUrl || ''}
+                  readOnly
+                  disabled={loading}
+                  className="h-10"
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                className="px-3"
+                onClick={copyToClipboard}
+                disabled={!shareUrl || loading}
+              >
+                {copied ? (
+                  'Copied!'
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          )}
         </div>
         
-        {loading && (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="ml-2">Generating share link...</span>
-          </div>
-        )}
         
         <div className="mt-4 text-sm text-muted-foreground">
           <p>File: {fileName}</p>
@@ -147,6 +222,7 @@ export default function ShareModal({
           ) : (
             <p>✓ This file is accessible without password</p>
           )}
+          <p className="mt-1">Link expires in: {selectedExpiration.label}</p>
         </div>
       </DialogContent>
     </Dialog>

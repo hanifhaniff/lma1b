@@ -42,6 +42,7 @@ export async function GET(
         id,
         file_key,
         created_at,
+        expires_at,
         files!inner (file_key, nama_file, password)
       `)
       .eq('id', shareid)
@@ -69,11 +70,12 @@ export async function GET(
       );
     }
 
-    // Check if the share has expired (assuming 7 days as defined in share API)
+    // Check if the share has expired
     const now = new Date();
-    const createdAt = new Date(shareData.created_at as string);
-    const expiresAt = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from creation
-    if (now > expiresAt) {
+    const expiresAt = shareData.expires_at ? new Date(shareData.expires_at as string) : null;
+    
+    // Only check expiration if expires_at is not null (unlimited)
+    if (expiresAt && now > expiresAt) {
       // Delete expired share
       await supabase.from('file_shares').delete().eq('id', shareid);
       return new Response(
@@ -156,6 +158,7 @@ export async function POST(
         id,
         file_key,
         created_at,
+        expires_at,
         files!inner (file_key, nama_file, password)
       `)
       .eq('id', shareid)
@@ -180,11 +183,12 @@ export async function POST(
       );
     }
 
-    // Check if the share has expired (assuming 7 days as defined in share API)
+    // Check if the share has expired
     const now = new Date();
-    const createdAt = new Date(shareData.created_at as string);
-    const expiresAt = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from creation
-    if (now > expiresAt) {
+    const expiresAt = shareData.expires_at ? new Date(shareData.expires_at as string) : null;
+    
+    // Only check expiration if expires_at is not null (unlimited)
+    if (expiresAt && now > expiresAt) {
       // Delete expired share
       await supabase.from('file_shares').delete().eq('id', shareid);
       return new Response(

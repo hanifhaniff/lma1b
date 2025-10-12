@@ -15,6 +15,31 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ filekey: string }> }
 ) {
+  // For backward compatibility, handle GET requests with default expiration
+  return handleShareRequest(request, params, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)); // 7 days default
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ filekey: string }> }
+) {
+  try {
+    const { expiresAt } = await request.json();
+    return handleShareRequest(request, params, expiresAt ? new Date(expiresAt) : null);
+  } catch (error) {
+    console.error('Error parsing POST request:', error);
+    return new Response(
+      JSON.stringify({ error: 'Invalid request format', details: error instanceof Error ? error.message : 'Unknown error' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+async function handleShareRequest(
+  request: NextRequest,
+  params: Promise<{ filekey: string }>,
+  expiresAt: Date | null
+) {
   try {
     const { filekey } = await params;
     console.log('Sharing file with key:', filekey);
@@ -79,7 +104,7 @@ export async function GET(
       .insert({
         id: shareableLinkId,
         file_key: filekey,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days expiry
+        expires_at: expiresAt ? expiresAt.toISOString() : null, // Use the provided expiration date or null if not provided
         created_at: new Date().toISOString()
       })
       .select();
