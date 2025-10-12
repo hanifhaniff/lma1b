@@ -1,32 +1,34 @@
-import { NextRequest } from 'next/server';
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
+import { NextRequest, NextResponse } from 'next/server';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import s3Client from '@/lib/r2-client';
 import getSupabaseClient from '@/lib/supabase-client';
+import { auth } from '@clerk/nextjs/server';
+import { ensureFilesTable } from '@/lib/setup-files';
 
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const password = formData.get('password') as string | null;
+    const prefix = formData.get('prefix') as string | null || '';
 
     if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Convert File to Buffer
     const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Generate a unique file key for internal reference
-    const fileKey = uuidv4();
-    // Use only the original filename for R2 storage (without any prefixes)
     const fileName = file.name;
-    const bucketName = process.env.R2_BUCKET_NAME!;
+    const key = `${prefix}${fileName}`;
 
-    // Upload to R2 using only the filename (without key prefix)
+    // Upload to R2
     const uploadParams = {
-      Bucket: bucketName,
-      Key: fileName,
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: key,
       Body: buffer,
       ContentType: file.type || 'application/octet-stream',
     };
@@ -34,45 +36,44 @@ export async function POST(request: NextRequest) {
     const command = new PutObjectCommand(uploadParams);
     await s3Client.send(command);
 
-    // Store file information in the database
+    // Ensure the files table exists
+    const tableExists = await ensureFilesTable();
+    if (!tableExists) {
+      return NextResponse.json({
+        error: 'File management is not properly set up',
+        details: 'The files table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file management feature.',
+        setupRequired: true
+      }, { status: 500 });
+    }
+
+    // Generate a unique file key for database reference
+    const fileKey = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // Store file information in database
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('files')
-      .insert([
-        {
-          file_key: fileKey,
-          nama_file: fileName,
-          password: password || null,
-        }
-      ])
-      .select();
+      .insert({
+        file_key: fileKey,
+        nama_file: key, // Store the full path including prefix
+        password: password || null,
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('Database error:', error);
-      // Clean up the file from R2 if database insertion fails
-      try {
-        // Delete the uploaded file from R2
-        const deleteCommand = new DeleteObjectCommand({
-          Bucket: bucketName,
-          Key: fileName,
-        });
-        await s3Client.send(deleteCommand);
-      } catch (cleanupError) {
-        console.error('Failed to clean up file from R2:', cleanupError);
-      }
-      
-      return Response.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to save file information' }, { status: 500 });
     }
 
-    return Response.json({ 
-      message: 'File uploaded successfully', 
-      file_key: fileKey,
-      filename: fileName,
-      originalName: file.name,
-      size: file.size
+    return NextResponse.json({
+      message: 'File uploaded successfully',
+      fileName: fileName,
+      fileKey: fileKey,
+      originalName: fileName,
     });
   } catch (error) {
     console.error('Upload error:', error);
-    return Response.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

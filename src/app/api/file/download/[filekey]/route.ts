@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import getSupabaseClient from '@/lib/supabase-client';
 import s3Client from '@/lib/r2-client';
+import { ensureFilesTable } from '@/lib/setup-files';
 
 export async function POST(
   request: NextRequest,
@@ -11,6 +12,17 @@ export async function POST(
     const { filekey } = await params;
     const { password } = await request.json();
     const bucketName = process.env.R2_BUCKET_NAME!;
+    
+    // Ensure the files table exists
+    const tableExists = await ensureFilesTable();
+    if (!tableExists) {
+      return Response.json({
+        error: 'File management is not properly set up',
+        details: 'The files table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file management feature.',
+        setupRequired: true
+      }, { status: 500 });
+    }
+    
     const supabase = getSupabaseClient();
 
     // Get file information from the database
@@ -67,6 +79,17 @@ export async function GET(
   try {
     const { filekey } = await params;
     const bucketName = process.env.R2_BUCKET_NAME!;
+    
+    // Ensure the files table exists
+    const tableExists = await ensureFilesTable();
+    if (!tableExists) {
+      return Response.json({
+        error: 'File management is not properly set up',
+        details: 'The files table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file management feature.',
+        setupRequired: true
+      }, { status: 500 });
+    }
+    
     const supabase = getSupabaseClient();
 
     // Get file information from the database

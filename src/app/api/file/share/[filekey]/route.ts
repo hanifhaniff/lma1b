@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import getSupabaseClient from '@/lib/supabase-client';
 import { ensureFileSharesTable } from '@/lib/setup-file-shares';
+import { ensureFilesTable } from '@/lib/setup-files';
 
 // Required table structure:
 // CREATE TABLE file_shares (
@@ -19,13 +20,26 @@ export async function GET(
     console.log('Sharing file with key:', filekey);
     const supabase = getSupabaseClient();
     
+    // Ensure the files table exists
+    const filesTableExists = await ensureFilesTable();
+    if (!filesTableExists) {
+      return new Response(
+        JSON.stringify({
+          error: 'File management is not properly set up',
+          details: 'The files table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file management feature.',
+          setupRequired: true
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Ensure the file_shares table exists
-    const tableExists = await ensureFileSharesTable();
-    if (!tableExists) {
+    const sharesTableExists = await ensureFileSharesTable();
+    if (!sharesTableExists) {
       return new Response(
         JSON.stringify({
           error: 'File sharing is not properly set up',
-          details: 'The file_shares table does not exist in the database. Please run the SQL script in src/lib/setup-file-shares-table.sql in your Supabase database to enable file sharing.',
+          details: 'The file_shares table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file sharing feature.',
           setupRequired: true
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -78,7 +92,7 @@ export async function GET(
         return new Response(
           JSON.stringify({
             error: 'File sharing is not properly set up',
-            details: 'The file_shares table does not exist in the database. Please run the SQL script in src/lib/setup-file-shares-table.sql in your Supabase database to enable file sharing.',
+            details: 'The file_shares table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file sharing feature.',
             setupRequired: true
           }),
           { status: 500, headers: { 'Content-Type': 'application/json' } }

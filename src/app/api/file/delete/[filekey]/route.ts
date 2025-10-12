@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import s3Client from '@/lib/r2-client';
 import getSupabaseClient from '@/lib/supabase-client';
+import { ensureFilesTable } from '@/lib/setup-files';
 
 export async function DELETE(
   request: NextRequest,
@@ -10,6 +11,20 @@ export async function DELETE(
   try {
     const { filekey } = await params; // This is the file_key now
     const bucketName = process.env.R2_BUCKET_NAME!;
+    
+    // Ensure the files table exists
+    const tableExists = await ensureFilesTable();
+    if (!tableExists) {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'File management is not properly set up',
+          details: 'The files table does not exist in the database. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file management feature.',
+          setupRequired: true
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const supabase = getSupabaseClient();
 
     // Get file information from the database to get the actual filename

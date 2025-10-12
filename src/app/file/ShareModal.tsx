@@ -56,13 +56,13 @@ export default function ShareModal({
       } else {
         if (data.setupRequired) {
           toast.error(
-            'File sharing is not set up. Please see FILE_SHARING_SETUP.md for instructions on how to set up the file sharing feature.',
+            'File sharing is not set up. Please see FILE_MANAGEMENT_SETUP.md for instructions on how to set up the file management feature.',
             {
               duration: 8000, // Show for longer to give users time to read
               action: {
                 label: 'View Guide',
                 onClick: () => {
-                  window.open('/FILE_SHARING_SETUP.md', '_blank');
+                  window.open('/FILE_MANAGEMENT_SETUP.md', '_blank');
                 }
               }
             }

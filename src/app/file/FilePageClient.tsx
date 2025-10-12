@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Upload, Download, File, Trash2, Loader2, Eye, EyeOff, Share } from 'lucide-react';
+import { Upload, Download, File, Trash2, Loader2, Eye, EyeOff, Share, Folder, ArrowLeft, FolderPlus } from 'lucide-react';
 import ShareModal from './ShareModal';
 
 export default function FilePageClient() {
@@ -17,34 +17,35 @@ export default function FilePageClient() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
-  const [files, setFiles] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isFetchingFiles, setIsFetchingFiles] = useState(false);
-  const [downloadStatus, setDownloadStatus] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState<{[key: string]: string}>({});
   const [showPasswordInput, setShowPasswordInput] = useState<{[key: string]: boolean}>({});
   const [uploadDialogOpen, setUploadDialogOpen] = useState<boolean>(false);
   const [uploadDialogType, setUploadDialogType] = useState<'success' | 'error'>('success');
   const [uploadDialogMessage, setUploadDialogMessage] = useState<string>('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  const [deleteFileName, setDeleteFileName] = useState<string>('');
-  const [fileToDelete, setFileToDelete] = useState<{fileKey: string, fileName: string} | null>(null);
+  const [deleteItemName, setDeleteItemName] = useState<string>('');
+  const [itemToDelete, setItemToDelete] = useState<{fileKey: string, fileName: string} | null>(null);
   const [shareModalOpen, setShareModalOpen] = useState<boolean>(false);
   const [fileToShare, setFileToShare] = useState<{fileKey: string, fileName: string, passwordProtected: boolean} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [apiBaseUrl, setApiBaseUrl] = useState<string>('');
-  
-  // Set the API base URL on the client side
+  const [currentPrefix, setCurrentPrefix] = useState<string>('');
+  const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState<boolean>(false);
+  const [newFolderName, setNewFolderName] = useState<string>('');
+
   useEffect(() => {
-    const getApiBaseUrl = () => {
-      // Always use the same origin for API requests
-      return window.location.origin;
-    };
-    
+    const getApiBaseUrl = () => window.location.origin;
     setApiBaseUrl(getApiBaseUrl());
   }, []);
 
-  // Handle file selection
+  useEffect(() => {
+    handleFetchItems(currentPrefix);
+  }, [currentPrefix, apiBaseUrl]);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -53,17 +54,14 @@ export default function FilePageClient() {
     }
   };
 
-  // Handle password input change for upload
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUploadPassword(e.target.value);
   };
 
-  // Toggle password visibility for upload
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // Handle file upload
   const handleUpload = async () => {
     if (!selectedFile) {
       setUploadStatus('Please select a file first');
@@ -79,12 +77,10 @@ export default function FilePageClient() {
     if (uploadPassword) {
       formData.append('password', uploadPassword);
     }
+    formData.append('prefix', currentPrefix);
 
     try {
-      // Create XMLHttpRequest to track upload progress
       const xhr = new XMLHttpRequest();
-
-      // Set up progress tracking
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100);
@@ -92,7 +88,6 @@ export default function FilePageClient() {
         }
       };
 
-      // Create promise to handle the request
       const requestPromise = new Promise((resolve, reject) => {
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
@@ -101,200 +96,143 @@ export default function FilePageClient() {
             reject(new Error(`Upload failed with status ${xhr.status}`));
           }
         };
-
-        xhr.onerror = () => {
-          reject(new Error('Upload failed due to network error'));
-        };
+        xhr.onerror = () => reject(new Error('Upload failed due to network error'));
       });
 
       xhr.open('POST', '/api/file/upload');
       xhr.send(formData);
 
-      // Wait for the upload to complete
       const result = await requestPromise;
       
-      // Show success dialog
       setUploadDialogType('success');
       setUploadDialogMessage(`File uploaded successfully: ${(result as any).originalName}`);
       setUploadDialogOpen(true);
       setUploadProgress(100);
       
-      // Reset file selection and password
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
       setSelectedFile(null);
       setUploadPassword('');
+      handleFetchItems(currentPrefix);
     } catch (error: any) {
-      // Show error dialog
       setUploadDialogType('error');
       setUploadDialogMessage(`Upload failed: ${error.message}`);
       setUploadDialogOpen(true);
     } finally {
       setIsUploading(false);
-      // Reset upload progress after a short delay to allow dialog to show
-      setTimeout(() => {
-        setUploadProgress(null);
-      }, 500);
+      setTimeout(() => setUploadProgress(null), 500);
     }
   };
 
-  // Fetch files from database
-  const handleFetchFiles = async () => {
-    setIsFetchingFiles(true);
-    setDownloadStatus('Fetching files...');
+  const handleFetchItems = async (prefix: string) => {
+    if (!apiBaseUrl) return;
+    setIsFetching(true);
+    setStatusMessage('Fetching items...');
     try {
-      // Use the API base URL to ensure we're hitting the correct port
-      const response = await fetch(`${apiBaseUrl}/api/file/list`);
+      const response = await fetch(`${apiBaseUrl}/api/file/list?prefix=${encodeURIComponent(prefix)}`);
       if (response.ok) {
         const data = await response.json();
-        setFiles(data.files);
-        setDownloadStatus(`${data.files.length} files found`);
+        setItems(data.items);
+        setStatusMessage(`${data.items.length} items found`);
       } else {
-        setDownloadStatus('Failed to fetch files');
+        setStatusMessage('Failed to fetch items');
       }
     } catch (error) {
-      setDownloadStatus('Error fetching files');
+      setStatusMessage('Error fetching items');
     } finally {
-      setIsFetchingFiles(false);
+      setIsFetching(false);
     }
   };
 
-  // Handle password input for download
-  const handleDownloadPasswordChange = (filename: string, e: ChangeEvent<HTMLInputElement>) => {
-    setPasswordInput(prev => ({
-      ...prev,
-      [filename]: e.target.value
-    }));
+  const handleFolderClick = (prefix: string) => {
+    setCurrentPrefix(prefix);
   };
 
-  // Toggle password visibility for download
-  const toggleDownloadPasswordVisibility = (filename: string) => {
-    setShowPasswordInput(prev => ({
-      ...prev,
-      [filename]: !prev[filename]
-    }));
+  const handleBackClick = () => {
+    const parentPrefix = currentPrefix.split('/').slice(0, -2).join('/') + (currentPrefix.split('/').length > 2 ? '/' : '');
+    setCurrentPrefix(parentPrefix);
   };
 
-  // Download a file with password authentication
   const handleDownload = async (fileKey: string, filename: string) => {
-    // For files with password protection, check password first
-    const fileData = files.find(f => f.file_key === fileKey);
-    if (fileData?.password) {
-      const enteredPassword = passwordInput[filename] || '';
-      if (!enteredPassword) {
-        setDownloadStatus('Please enter password to download this file');
-        return;
+    const response = await fetch(`${apiBaseUrl}/api/file/download/${fileKey}`);
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setStatusMessage(`Downloaded ${filename} successfully`);
+    } else {
+      let errorMessage = 'Download failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || 'Download failed';
+      } catch (e) {
+        try {
+          errorMessage = await response.text();
+        } catch (textError) {
+          errorMessage = 'Download failed';
+        }
       }
+      setStatusMessage(`Download failed: ${errorMessage}`);
+    }
+  };
 
-      const response = await fetch(`${apiBaseUrl}/api/file/download/${fileKey}`, {
+  const prepareDelete = (fileKey: string, fileName: string) => {
+    setDeleteItemName(fileName);
+    setItemToDelete({ fileKey, fileName });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+    setDeleteDialogOpen(false);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/file/delete/${itemToDelete.fileKey}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        handleFetchItems(currentPrefix);
+        setStatusMessage(`Deleted ${itemToDelete.fileName} successfully`);
+      } else {
+        setStatusMessage(`Delete failed for ${itemToDelete.fileName}`);
+      }
+    } catch (error) {
+      setStatusMessage(`Delete error: ${error}`);
+    }
+  };
+
+  const prepareShare = (fileKey: string, fileName: string, passwordProtected: boolean = false) => {
+    setFileToShare({ fileKey, fileName, passwordProtected });
+    setShareModalOpen(true);
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName) return;
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/file/folder/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ password: enteredPassword }),
+        body: JSON.stringify({ folderName: newFolderName, prefix: currentPrefix }),
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setDownloadStatus(`Downloaded ${filename} successfully`);
-        // Clear password input after successful download
-        setPasswordInput(prev => {
-          const newState = { ...prev };
-          delete newState[filename];
-          return newState;
-        });
+        setNewFolderName('');
+        setCreateFolderDialogOpen(false);
+        handleFetchItems(currentPrefix);
+        setStatusMessage(`Folder '${newFolderName}' created successfully`);
       } else {
-        // For error responses, we might get JSON or just text
-        let errorMessage = 'Incorrect password';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || 'Download failed';
-        } catch (e) {
-          // If response is not JSON, try to get error text
-          try {
-            errorMessage = await response.text();
-          } catch (textError) {
-            // If all fails, use a generic message
-            errorMessage = 'Download failed';
-          }
-        }
-        setDownloadStatus(`Download failed: ${errorMessage}`);
-      }
-    } else {
-      const response = await fetch(`${apiBaseUrl}/api/file/download/${fileKey}`, {
-        method: 'GET'
-      });
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setDownloadStatus(`Downloaded ${filename} successfully`);
-      } else {
-        // Handle error response which might be JSON
-        let errorMessage = 'Download failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || 'Download failed';
-        } catch (e) {
-          // If response is not JSON, try to get error text
-          try {
-            errorMessage = await response.text();
-          } catch (textError) {
-            // If all fails, use a generic message
-            errorMessage = 'Download failed';
-          }
-        }
-        setDownloadStatus(`Download failed: ${errorMessage}`);
-      }
-    }
-  };
-
-  // Prepare for delete confirmation
-  const prepareDelete = (fileKey: string, fileName: string) => {
-    setDeleteFileName(fileName);
-    setFileToDelete({ fileKey, fileName });
-    setDeleteDialogOpen(true);
-  };
-
-  // Delete a file
-  const handleDelete = async () => {
-    if (!fileToDelete) return;
-
-    setDeleteDialogOpen(false);
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/file/delete/${fileToDelete.fileKey}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setFiles(prev => prev.filter(file => file.file_key !== fileToDelete.fileKey));
-        setDownloadStatus(`Deleted ${fileToDelete.fileName} successfully`);
-      } else {
-        setDownloadStatus(`Delete failed for ${fileToDelete.fileName}`);
+        const data = await response.json();
+        setStatusMessage(`Failed to create folder: ${data.error}`);
       }
     } catch (error) {
-      setDownloadStatus(`Delete error: ${error}`);
+      setStatusMessage('Error creating folder');
     }
-  };
-
-  // Prepare for share
-  const prepareShare = (fileKey: string, fileName: string, hasPassword: boolean) => {
-    setFileToShare({ fileKey, fileName, passwordProtected: hasPassword });
-    setShareModalOpen(true);
   };
 
   return (
@@ -317,8 +255,8 @@ export default function FilePageClient() {
                   ref={fileInputRef}
                   className="flex-1"
                 />
-                <Button 
-                  onClick={handleUpload} 
+                <Button
+                  onClick={handleUpload}
                   disabled={!selectedFile || isUploading}
                   className="w-full sm:w-auto"
                 >
@@ -337,179 +275,166 @@ export default function FilePageClient() {
               </div>
 
               {selectedFile && (
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                </div>
-              )}
-
-              {/* Password field for upload */}
-              <div className="mt-4 space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Set Password (Optional)
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    value={uploadPassword}
-                    onChange={handlePasswordChange}
-                    placeholder="Enter password to protect this file"
-                    disabled={isUploading}
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={togglePasswordVisibility}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {uploadProgress !== null && (
-                <div className="space-y-2">
-                  <Progress value={uploadProgress} className="w-full" />
-                  <div className="text-sm text-muted-foreground">{uploadStatus}</div>
+                <div className="mt-2 space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={uploadPassword}
+                      onChange={handlePasswordChange}
+                      placeholder="Password (optional)"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={togglePasswordVisibility}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Leave password empty if you don't want to protect this file
+                  </p>
                 </div>
               )}
             </div>
 
             <Separator />
 
-            {/* Download Section */}
+            {/* File List Section */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Stored Files</h2>
-                <Button 
-                  onClick={handleFetchFiles} 
-                  disabled={isFetchingFiles}
-                  variant="outline"
-                  size="sm"
-                >
-                  {isFetchingFiles ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Refreshing...
-                    </>
-                  ) : (
-                    'Refresh Files'
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => setCreateFolderDialogOpen(true)} variant="outline" size="sm">
+                    <FolderPlus className="mr-2 h-4 w-4" />
+                    Create Folder
+                  </Button>
+                  <Button 
+                    onClick={() => handleFetchItems(currentPrefix)} 
+                    disabled={isFetching}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {isFetching ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Refreshing...</>
+                    ) : (
+                      'Refresh'
+                    )}
+                  </Button>
+                </div>
               </div>
 
-              {downloadStatus && (
-                <div className="text-sm py-2 px-3 bg-muted rounded-md">
-                  {downloadStatus}
-                </div>
+              {currentPrefix && (
+                <Button onClick={handleBackClick} variant="outline" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
               )}
 
               <div className="border rounded-lg overflow-hidden">
-                {files.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    No files found. Upload a file to get started.
-                  </div>
-                ) : (
-                  <table className="w-full">
-                    <thead className="bg-muted">
-                      <tr>
-                        <th className="text-left p-3">File Name</th>
-                        <th className="text-left p-3">Password Protected</th>
-                        <th className="text-left p-3">Actions</th>
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left p-3">Name</th>
+                      <th className="text-left p-3">Type</th>
+                      <th className="text-left p-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            {item.type === 'folder' ? <Folder className="h-4 w-4" /> : <File className="h-4 w-4" />}
+                            <a 
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (item.type === 'folder') handleFolderClick(item.prefix);
+                              }}
+                              className={item.type === 'folder' ? 'cursor-pointer hover:underline' : ''}
+                            >
+                              {item.name}
+                            </a>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <Badge variant={item.type === 'folder' ? 'secondary' : 'outline'}>
+                            {item.type}
+                          </Badge>
+                        </td>
+                        <td className="p-3">
+                          {item.type === 'file' && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDownload(item.file_key, item.name)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => prepareShare(item.file_key, item.name, item.password_protected)}
+                              >
+                                <Share className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => prepareDelete(item.file_key, item.name)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {files.map((file, index) => (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
-                          <td className="p-3">
-                            <div className="flex items-center gap-2">
-                              <File className="h-4 w-4" />
-                              {file.nama_file}
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            {file.password ? (
-                              <Badge variant="secondary">Yes</Badge>
-                            ) : (
-                              <Badge variant="outline">No</Badge>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            <div className="space-y-2">
-                              {file.password && (
-                                <div className="flex gap-2 mb-2">
-                                  <div className="relative flex-1">
-                                    <Input
-                                      type={showPasswordInput[file.nama_file] ? "text" : "password"}
-                                      value={passwordInput[file.nama_file] || ''}
-                                      onChange={(e) => handleDownloadPasswordChange(file.nama_file, e)}
-                                      placeholder="Enter password"
-                                      className="pr-10"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                      onClick={() => toggleDownloadPasswordVisibility(file.nama_file)}
-                                    >
-                                      {showPasswordInput[file.nama_file] ? (
-                                        <EyeOff className="h-4 w-4" />
-                                      ) : (
-                                        <Eye className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDownload(file.file_key, file.nama_file)}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => prepareShare(file.file_key, file.nama_file, !!file.password)}
-                                >
-                                  <Share className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => prepareDelete(file.file_key, file.nama_file)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Upload Status Dialog */}
+      {/* Create Folder Dialog */}
+      <AlertDialog open={createFolderDialogOpen} onOpenChange={setCreateFolderDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Create New Folder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter a name for the new folder.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Input
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Folder name"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCreateFolderDialogOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateFolder}>Create</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Other Dialogs */}
       <AlertDialog 
         open={uploadDialogOpen} 
         onOpenChange={(open) => {
           setUploadDialogOpen(open);
           if (!open) {
-            // Reset the dialog message when closing to prevent stale messages
             setUploadDialogMessage('');
           }
         }}
@@ -535,7 +460,6 @@ export default function FilePageClient() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -543,7 +467,7 @@ export default function FilePageClient() {
               <span className="text-red-500">⚠ Confirm Deletion</span>
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "<strong>{deleteFileName}</strong>"? This action cannot be undone.
+              Are you sure you want to delete "<strong>{deleteItemName}</strong>"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -560,7 +484,6 @@ export default function FilePageClient() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Share Modal */}
       <ShareModal
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
