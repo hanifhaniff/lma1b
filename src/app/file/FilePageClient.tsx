@@ -311,12 +311,16 @@ export default function FilePageClient() {
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Stored Files</h2>
                 <div className="flex gap-2">
+                  <Button onClick={() => window.location.href = '/file/folders'} variant="outline" size="sm">
+                    <Folder className="mr-2 h-4 w-4" />
+                    Folder View
+                  </Button>
                   <Button onClick={() => setCreateFolderDialogOpen(true)} variant="outline" size="sm">
                     <FolderPlus className="mr-2 h-4 w-4" />
                     Create Folder
                   </Button>
-                  <Button 
-                    onClick={() => handleFetchItems(currentPrefix)} 
+                  <Button
+                    onClick={() => handleFetchItems(currentPrefix)}
                     disabled={isFetching}
                     variant="outline"
                     size="sm"
