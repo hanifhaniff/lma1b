@@ -403,37 +403,40 @@ export default function RuijiePage() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Ruijie Vouchers</h1>
-        <p className="text-muted-foreground">
+    <div className="container mx-auto p-2 sm:p-4 max-w-6xl">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Ruijie Vouchers</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Manage and search through your voucher inventory.
         </p>
       </div>
 
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            Voucher List
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle className="text-lg sm:text-xl mb-1">Voucher List</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Manage and search through your voucher inventory
+              </p>
+            </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="h-8 gap-1">
-                  <Plus className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Create Voucher
-                  </span>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Voucher
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[425px] w-[95%] max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Create New Voucher</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="text-lg">Create New Voucher</DialogTitle>
+                  <DialogDescription className="text-sm">
                     Fill in the details to create a new voucher. Click save when you're done.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="quantity" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                    <Label htmlFor="quantity" className="sm:text-right text-sm">
                       Quantity
                     </Label>
                     <Input
@@ -442,11 +445,11 @@ export default function RuijiePage() {
                       min="1"
                       value={quantity}
                       onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="profile" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                    <Label htmlFor="profile" className="sm:text-right text-sm">
                       Profile
                     </Label>
                     <Select
@@ -460,7 +463,7 @@ export default function RuijiePage() {
                         }
                       }}
                     >
-                      <SelectTrigger className="col-span-3">
+                      <SelectTrigger className="col-span-1 sm:col-span-3">
                         <SelectValue placeholder="Select a profile" />
                       </SelectTrigger>
                       <SelectContent>
@@ -472,39 +475,39 @@ export default function RuijiePage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="userGroupId" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                    <Label htmlFor="userGroupId" className="sm:text-right text-sm">
                       Group ID
                     </Label>
                     <Input
                       id="userGroupId"
                       value={userGroupId}
                       onChange={(e) => setUserGroupId(e.target.value)}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                       placeholder="Auto-populated when profile is selected"
                       readOnly
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="firstName" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                    <Label htmlFor="firstName" className="sm:text-right text-sm">
                       First Name
                     </Label>
                     <Input
                       id="firstName"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="comment" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                    <Label htmlFor="comment" className="sm:text-right text-sm">
                       Comment
                     </Label>
                     <Input
                       id="comment"
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className="col-span-3"
+                      className="col-span-1 sm:col-span-3"
                     />
                   </div>
                 </div>
@@ -523,114 +526,128 @@ export default function RuijiePage() {
                     type="button"
                     onClick={handleCreateVoucher}
                     disabled={createLoading || !profile || !userGroupId || !firstName}
+                    className="w-full sm:w-auto"
                   >
                     {createLoading ? 'Creating...' : 'Create Voucher'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </CardTitle>
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by first name..."
-                value={searchFirstName}
-                onChange={(e) => setSearchFirstName(e.target.value)}
-                className="pl-8 w-full sm:w-64"
-              />
-            </div>
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by voucher code..."
-                value={searchVoucherCode}
-                onChange={(e) => setSearchVoucherCode(e.target.value)}
-                className="pl-8 w-full sm:w-64"
-              />
-            </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Voucher Code</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Package Name</TableHead>
-                <TableHead>First Name</TableHead>
-                <TableHead>Comment</TableHead>
-                <TableHead>Used Quota/Mb</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentVouchers.map((voucher, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{voucher.voucherCode}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(voucher.status)}>
-                      {voucher.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{voucher.packageName}</TableCell>
-                  <TableCell>{voucher.firstName}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={voucher.comment}>
-                    {voucher.comment}
-                  </TableCell>
-                  <TableCell>{voucher.usedQuota}</TableCell>
+        
+        <div className="px-6 pb-4">
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h3 className="text-sm font-medium mb-3">Search Vouchers</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by first name..."
+                  value={searchFirstName}
+                  onChange={(e) => setSearchFirstName(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by voucher code..."
+                  value={searchVoucherCode}
+                  onChange={(e) => setSearchVoucherCode(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <CardContent className="p-2 sm:p-6">
+          {/* Mobile-friendly table with horizontal scroll */}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="whitespace-nowrap">Voucher Code</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Package Name</TableHead>
+                  <TableHead className="whitespace-nowrap">First Name</TableHead>
+                  <TableHead className="whitespace-nowrap">Comment</TableHead>
+                  <TableHead className="whitespace-nowrap">Used Quota/Mb</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {currentVouchers.map((voucher, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium whitespace-nowrap">{voucher.voucherCode}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Badge variant={getStatusVariant(voucher.status)}>
+                        {voucher.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{voucher.packageName}</TableCell>
+                    <TableCell className="whitespace-nowrap">{voucher.firstName}</TableCell>
+                    <TableCell className="max-w-[120px] sm:max-w-xs truncate" title={voucher.comment}>
+                      {voucher.comment}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{voucher.usedQuota}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           
           {filteredVouchers.length === 0 && (
             <div className="text-center py-10 text-muted-foreground">
-              {vouchers.length === 0 
-                ? 'No vouchers found.' 
+              {vouchers.length === 0
+                ? 'No vouchers found.'
                 : 'No vouchers match your search criteria.'}
             </div>
           )}
           
-          {/* Pagination Controls */}
+          {/* Mobile-friendly Pagination Controls */}
           {filteredVouchers.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredVouchers.length)} of {filteredVouchers.length} results
-                </span>
+            <div className="flex flex-col gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredVouchers.length)} of {filteredVouchers.length} results
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Items per page:</span>
+                  <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <SelectTrigger className="w-[60px] sm:w-[70px] h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Items per page:</span>
-                <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-                  <SelectTrigger className="w-[70px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center sm:justify-end space-x-1 sm:space-x-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
+                  className="h-8 px-2 sm:px-3"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  <span className="hidden sm:inline ml-1">Previous</span>
                 </Button>
                 
-                {/* Page numbers with ellipsis */}
-                <div className="flex items-center space-x-1">
+                {/* Mobile-friendly page numbers */}
+                <div className="flex items-center space-x-1 overflow-x-auto max-w-[200px] sm:max-w-none">
                   {(() => {
                     const pages = [];
-                    const maxVisiblePages = 5;
+                    const maxVisiblePages = 3; // Show fewer pages on mobile
                     
                     if (totalPages <= maxVisiblePages) {
                       // Show all pages if total is less than or equal to max visible
@@ -641,19 +658,19 @@ export default function RuijiePage() {
                       // Show first page
                       pages.push(1);
                       
-                      if (currentPage <= 3) {
-                        // Show pages 2, 3, 4, 5 when current page is near the start
-                        for (let i = 2; i <= Math.min(5, totalPages - 1); i++) {
+                      if (currentPage <= 2) {
+                        // Show pages 2, 3 when current page is near the start
+                        for (let i = 2; i <= Math.min(3, totalPages - 1); i++) {
                           pages.push(i);
                         }
-                        if (totalPages > 5) {
+                        if (totalPages > 3) {
                           pages.push('...');
                           pages.push(totalPages);
                         }
-                      } else if (currentPage >= totalPages - 2) {
+                      } else if (currentPage >= totalPages - 1) {
                         // Show pages near the end
                         pages.push('...');
-                        for (let i = Math.max(totalPages - 4, 2); i <= totalPages; i++) {
+                        for (let i = Math.max(totalPages - 2, 2); i <= totalPages; i++) {
                           pages.push(i);
                         }
                       } else {
@@ -670,7 +687,7 @@ export default function RuijiePage() {
                     return pages.map((page, index) => {
                       if (page === '...') {
                         return (
-                          <span key={`ellipsis-${index}`} className="px-2 py-1 text-sm text-muted-foreground">
+                          <span key={`ellipsis-${index}`} className="px-2 py-1 text-xs sm:text-sm text-muted-foreground">
                             ...
                           </span>
                         );
@@ -682,7 +699,7 @@ export default function RuijiePage() {
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => paginate(page as number)}
-                          className={currentPage === page ? "bg-primary" : ""}
+                          className={`h-8 w-8 sm:w-auto sm:px-3 text-xs ${currentPage === page ? "bg-primary" : ""}`}
                         >
                           {page}
                         </Button>
@@ -696,9 +713,10 @@ export default function RuijiePage() {
                   size="sm"
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  className="h-8 px-2 sm:px-3"
                 >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                  <span className="hidden sm:inline mr-1">Next</span>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
