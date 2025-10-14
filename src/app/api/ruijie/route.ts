@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const searchVoucherCode = searchParams.get('searchVoucherCode');
 
     // Construct the API URL with query parameters
-    const apiUrl = `https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/getList/6435153?access_token=${accessToken}&start=1&pageSize=300&tenantId=504179`;
+    const apiUrl = `https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/getList/6435153?access_token=${accessToken}&start=0&pageSize=300&tenantId=504179`;
 
     // Fetch data from the Ruijie API
     const response = await fetch(apiUrl, {
