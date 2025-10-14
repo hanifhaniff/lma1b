@@ -407,7 +407,7 @@ export default function RuijiePage() {
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Ruijie Vouchers</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Manage and search through your voucher inventory.
+          Manage and create ruijie Voucher.
         </p>
       </div>
 
@@ -417,7 +417,7 @@ export default function RuijiePage() {
             <div>
               <CardTitle className="text-lg sm:text-xl mb-1">Voucher List</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Manage and search through your voucher inventory
+                Manage and create ruijie Voucher.
               </p>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
