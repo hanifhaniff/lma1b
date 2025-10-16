@@ -27,6 +27,7 @@ import {
   Car,
   Shovel
 } from "lucide-react";
+import { Target, Briefcase, Shield } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@clerk/nextjs";
@@ -101,6 +102,25 @@ const ConstructionLandingPage = () => {
     }
   ];
 
+  // Core Values data
+  const coreValues = [
+    {
+      icon: <Target className="h-10 w-10 text-blue-500" />,
+      title: "Focus",
+      description: "We maintain unwavering focus on project objectives, delivering exceptional results with precision and dedication to every detail."
+    },
+    {
+      icon: <Briefcase className="h-10 w-10 text-blue-500" />,
+      title: "Professional",
+      description: "Our team operates with the highest professional standards, ensuring quality workmanship and reliable project management."
+    },
+    {
+      icon: <Shield className="h-10 w-10 text-blue-500" />,
+      title: "Integrity",
+      description: "We conduct business with transparency and honesty, building trust through ethical practices and accountable leadership."
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -128,6 +148,7 @@ const ConstructionLandingPage = () => {
               </Link>
               <Link href="#main-content" className="hover:text-blue-500 transition-colors">Home</Link>
               <Link href="#services" className="hover:text-blue-500 transition-colors">Services</Link>
+              {/* <Link href="#core-values" className="hover:text-blue-500 transition-colors">Core Values</Link> */}
               <Link href="#projects" className="hover:text-blue-500 transition-colors">Projects</Link>
               <Link href="#about" className="hover:text-blue-500 transition-colors">About</Link>
               <Link href="#contact" className="hover:text-blue-500 transition-colors">Contact</Link>
@@ -168,6 +189,7 @@ const ConstructionLandingPage = () => {
             <div className="flex flex-col gap-4">
               <Link href="#main-content" className="hover:text-blue-500 transition-colors" onClick={() => setMobileMenuOpen(false)}>Home</Link>
               <Link href="#services" className="hover:text-blue-500 transition-colors" onClick={() => setMobileMenuOpen(false)}>Services</Link>
+              <Link href="#core-values" className="hover:text-blue-500 transition-colors" onClick={() => setMobileMenuOpen(false)}>Core Values</Link>
               <Link href="#projects" className="hover:text-blue-500 transition-colors" onClick={() => setMobileMenuOpen(false)}>Projects</Link>
               <Link href="#about" className="hover:text-blue-500 transition-colors" onClick={() => setMobileMenuOpen(false)}>About</Link>
               <Link href="#contact" className="hover:text-blue-500 transition-colors" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
@@ -198,7 +220,7 @@ const ConstructionLandingPage = () => {
             <div className="flex flex-col items-center text-center text-white">
               <Badge className="mb-4 bg-blue-500 text-white">EST. 1994</Badge>
               <h1 className="text-4xl md:text-6xl font-bold mb-6 max-w-3xl">
-                Lancarjaya Mandiri Abadi
+                PT.Lancarjaya Mandiri Abadi
               </h1>
               <p className="text-2xl mb-10 font-bold max-w-2xl">
                 Project 1B
@@ -236,75 +258,6 @@ const ConstructionLandingPage = () => {
           </div>
         </section>
 
-        {/* Services Section */}
-        <section id="services" className="py-20">
-          <div className="container px-4 mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Comprehensive construction solutions tailored to your needs
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-              {services.map((service, index) => (
-                <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-md">
-                  <div className="mb-4 flex justify-center items-center w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/30 mx-auto">
-                    {service.icon}
-                  </div>
-                  <CardHeader className="p-0 text-center">
-                    <CardTitle className="text-xl mb-2">{service.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 text-center">
-                    <p className="text-muted-foreground">{service.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Projects Section */}
-        <section id="projects" className="py-20 bg-muted/30">
-          <div className="container px-4 mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Projects</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our portfolio of completed construction projects
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {projects.map((project, index) => (
-                <Card key={index} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={project.image} 
-                      alt={`Photo of ${project.title}`} 
-                      className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                      <Button className="w-full bg-white text-black hover:bg-gray-200" aria-label={`View details for ${project.title}`}>
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{project.title}</CardTitle>
-                    <CardDescription>{project.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button variant="outline" className="w-full">
-                      View Details
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* About Section */}
         <section id="about" className="py-20">
           <div className="container px-4 mx-auto">
@@ -319,7 +272,7 @@ const ConstructionLandingPage = () => {
                   </p>
                   <div className="grid grid-cols-2 gap-6 mb-8">
                     <div className="text-center p-4 border rounded-lg">
-                      <div className="text-3xl font-bold text-blue-500">250+</div>
+                      <div className="text-3xl font-bold text-blue-500">50+</div>
                       <div className="text-muted-foreground">Projects Completed</div>
                     </div>
                     <div className="text-center p-4 border rounded-lg">
@@ -374,8 +327,105 @@ const ConstructionLandingPage = () => {
           </div>
         </section>
 
+        {/* Core Values Section */}
+        <section id="core-values" className="py-20 bg-muted/30">
+          <div className="container px-4 mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Core Values</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                The principles that guide our business and define our commitment to excellence
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {coreValues.map((value, index) => (
+                <Card key={index} className="p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-md text-center">
+                  <div className="mb-6 flex justify-center items-center w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-950/30 mx-auto">
+                    {value.icon}
+                  </div>
+                  <CardHeader className="p-0">
+                    <CardTitle className="text-2xl mb-4">{value.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <p className="text-muted-foreground leading-relaxed">{value.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Projects Section */}
+        <section id="projects" className="py-20">
+          <div className="container px-4 mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Projects</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Our portfolio of completed construction projects
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {projects.map((project, index) => (
+                <Card key={index} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src={project.image} 
+                      alt={`Photo of ${project.title}`} 
+                      className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                      <Button className="w-full bg-white text-black hover:bg-gray-200" aria-label={`View details for ${project.title}`}>
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                  <CardHeader>
+                    <CardTitle>{project.title}</CardTitle>
+                    <CardDescription>{project.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button variant="outline" className="w-full">
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Services Section */}
+        <section id="services" className="py-20  bg-muted/30">
+          <div className="container px-4 mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Comprehensive construction solutions tailored to your needs
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+              {services.map((service, index) => (
+                <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-0 shadow-md">
+                  <div className="mb-4 flex justify-center items-center w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-950/30 mx-auto">
+                    {service.icon}
+                  </div>
+                  <CardHeader className="p-0 text-center">
+                    <CardTitle className="text-xl mb-2">{service.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 text-center">
+                    <p className="text-muted-foreground">{service.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Testimonials */}
-        <section className="py-20 bg-muted/30">
+        {/* <section className="py-20 bg-muted/30">
           <div className="container px-4 mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Client Testimonials</h2>
@@ -406,7 +456,7 @@ const ConstructionLandingPage = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Contact Section */}
         <section id="contact" className="py-20">
@@ -415,7 +465,7 @@ const ConstructionLandingPage = () => {
               <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h2>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Get in touch with our team for a free consultation
+                  Get in touch with our team
                 </p>
               </div>
 
@@ -436,7 +486,7 @@ const ConstructionLandingPage = () => {
                       <Mail className="h-6 w-6 text-blue-500 mt-1" />
                       <div>
                         <h4 className="font-semibold">Email</h4>
-                        <p className="text-muted-foreground">hanif@lmacontractor.com.com</p>
+                        <p className="text-muted-foreground">business.process@lmacontractor.com</p>
                       </div>
                     </div>
                     
@@ -459,11 +509,7 @@ const ConstructionLandingPage = () => {
                       <span>8:00 AM - 6:00 PM</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Saturday</span>
-                      <span>9:00 AM - 2:00 PM</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sunday</span>
+                      <span>Saturday - Sunday</span>
                       <span>Closed</span>
                     </div>
                   </div>
@@ -547,11 +593,11 @@ const ConstructionLandingPage = () => {
                 <Image 
                   src="/lma.png" 
                   alt="LMA Logo" 
-                  width={32} 
-                  height={32} 
+                  width={20} 
+                  height={20} 
                   className="h-8 w-8 text-blue-400"
                 />
-                <span className="text-xl font-bold">PT.LMA</span>
+                <span className="text-lg font-semibold">PT.Lancarjaya Mandiri Abadi</span>
               </div>
                 <p className="text-blue-200 mb-4">
                   Professional construction services with over 30 years of experience.
@@ -604,7 +650,7 @@ const ConstructionLandingPage = () => {
                   <div className="mb-2">Jl. Raya Narogong, Cileungsi, Jawa Barat</div>
                   <div className="mb-2">Indonesia</div>
                   <div className="mb-2">(021) 8250-365</div>
-                  <div>hanif@lmacontractor.com</div>
+                  <div>business.process@lmacontractor.com</div>
                 </address>
               </div>
             </div>

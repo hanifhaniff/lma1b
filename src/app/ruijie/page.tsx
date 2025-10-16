@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, ChevronLeft, ChevronRight, Plus, Lock, Eye, EyeOff } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Plus, Lock, Eye, EyeOff, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -71,6 +71,7 @@ export default function RuijiePage() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [filteredVouchers, setFilteredVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchFirstName, setSearchFirstName] = useState('');
   const [searchVoucherCode, setSearchVoucherCode] = useState('');
@@ -104,49 +105,63 @@ export default function RuijiePage() {
   };
 
   // Fetch vouchers from API
-  useEffect(() => {
-    if (!isAuthenticated) return; // Don't fetch if not authenticated
+  const fetchVouchers = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     
-    const fetchVouchers = async () => {
-      setLoading(true); // Set loading to true when starting to fetch
-      try {
-        const response = await fetch('/api/ruijie');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch vouchers: ${response.status} ${response.statusText}`);
+    try {
+      const response = await fetch('/api/vouchers');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch vouchers: ${response.status} ${response.statusText}`);
+      }
+      const data = await response.json();
+      
+      // Handle different potential response structures
+      let vouchersData: Voucher[] = [];
+      if (Array.isArray(data)) {
+        vouchersData = data;
+      } else if (data && typeof data === 'object') {
+        // If the API returns data in a nested format, check common property names
+        if (Array.isArray(data.vouchers)) {
+          vouchersData = data.vouchers;
+        } else if (Array.isArray(data.data)) {
+          vouchersData = data.data;
+        } else if (Array.isArray(data.list)) {
+          vouchersData = data.list;
+        } else {
+          // If none of the common structures match, try to use the data directly if it's an object with required fields
+          console.warn('Unexpected API response structure:', data);
+          throw new Error('API returned unexpected data structure');
         }
-        const data = await response.json();
-        
-        // Handle different potential response structures
-        let vouchersData: Voucher[] = [];
-        if (Array.isArray(data)) {
-          vouchersData = data;
-        } else if (data && typeof data === 'object') {
-          // If the API returns data in a nested format, check common property names
-          if (Array.isArray(data.vouchers)) {
-            vouchersData = data.vouchers;
-          } else if (Array.isArray(data.data)) {
-            vouchersData = data.data;
-          } else if (Array.isArray(data.list)) {
-            vouchersData = data.list;
-          } else {
-            // If none of the common structures match, try to use the data directly if it's an object with required fields
-            console.warn('Unexpected API response structure:', data);
-            throw new Error('API returned unexpected data structure');
-          }
-        }
-        
-        setVouchers(vouchersData);
-        setFilteredVouchers(vouchersData);
-      } catch (err) {
-        console.error('Error fetching vouchers:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      } finally {
+      }
+      
+      setVouchers(vouchersData);
+      setFilteredVouchers(vouchersData);
+    } catch (err) {
+      console.error('Error fetching vouchers:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
         setLoading(false);
       }
-    };
+    }
+  };
 
+  // Initial fetch on component mount and authentication
+  useEffect(() => {
+    if (!isAuthenticated) return; // Don't fetch if not authenticated
     fetchVouchers();
   }, [isAuthenticated]); // Add isAuthenticated as a dependency
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    fetchVouchers(true);
+  };
 
   // Handle search
   useEffect(() => {
@@ -162,7 +177,7 @@ export default function RuijiePage() {
         }
         
         // Fetch filtered data from API
-        const response = await fetch(`/api/ruijie?${params.toString()}`);
+        const response = await fetch(`/api/vouchers?${params.toString()}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch filtered vouchers: ${response.status} ${response.statusText}`);
         }
@@ -224,7 +239,7 @@ export default function RuijiePage() {
     setCreateSuccess(null);
     
     try {
-      const response = await fetch('/api/ruijie', {
+      const response = await fetch('/api/vouchers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,39 +284,8 @@ export default function RuijiePage() {
         setCreateSuccess(null);
       }, 2000);
       
-      // Refresh the voucher list
-      const fetchVouchers = async () => {
-        try {
-          const response = await fetch('/api/ruijie');
-          if (response.ok) {
-            const data = await response.json();
-            
-            // Handle different potential response structures
-            let vouchersData: Voucher[] = [];
-            if (Array.isArray(data)) {
-              vouchersData = data;
-            } else if (data && typeof data === 'object') {
-              // Check for nested structure: data.voucherData.list
-              if (data.voucherData && data.voucherData.list && Array.isArray(data.voucherData.list)) {
-                vouchersData = data.voucherData.list;
-              } else if (Array.isArray(data.vouchers)) {
-                vouchersData = data.vouchers;
-              } else if (Array.isArray(data.data)) {
-                vouchersData = data.data;
-              } else if (Array.isArray(data.list)) {
-                vouchersData = data.list;
-              }
-            }
-            
-            setVouchers(vouchersData);
-            setFilteredVouchers(vouchersData);
-          }
-        } catch (err) {
-          console.error('Error refreshing vouchers:', err);
-        }
-      };
-      
-      fetchVouchers();
+      // Refresh the voucher list using the shared fetchVouchers function
+      fetchVouchers(true);
       
     } catch (err) {
       console.error('Error creating voucher:', err);
@@ -385,7 +369,10 @@ export default function RuijiePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading vouchers...</div>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <div className="text-xl text-muted-foreground">Loading vouchers...</div>
+        </div>
       </div>
     );
   }
@@ -420,119 +407,134 @@ export default function RuijiePage() {
                 Manage and create ruijie Voucher.
               </p>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Voucher
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] w-[95%] max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="text-lg">Create New Voucher</DialogTitle>
-                  <DialogDescription className="text-sm">
-                    Fill in the details to create a new voucher. Click save when you're done.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                    <Label htmlFor="quantity" className="sm:text-right text-sm">
-                      Quantity
-                    </Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                      className="col-span-1 sm:col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                    <Label htmlFor="profile" className="sm:text-right text-sm">
-                      Profile
-                    </Label>
-                    <Select
-                      value={profile}
-                      onValueChange={(value) => {
-                        setProfile(value);
-                        // Auto-populate userGroupId when profile is selected
-                        const selectedOption = profileOptions.find(option => option.profile === value);
-                        if (selectedOption) {
-                          setUserGroupId(selectedOption.userGroupId);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="col-span-1 sm:col-span-3">
-                        <SelectValue placeholder="Select a profile" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {profileOptions.map((option) => (
-                          <SelectItem key={option.profile} value={option.profile}>
-                            {option.showName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                    <Label htmlFor="userGroupId" className="sm:text-right text-sm">
-                      Group ID
-                    </Label>
-                    <Input
-                      id="userGroupId"
-                      value={userGroupId}
-                      onChange={(e) => setUserGroupId(e.target.value)}
-                      className="col-span-1 sm:col-span-3"
-                      placeholder="Auto-populated when profile is selected"
-                      readOnly
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                    <Label htmlFor="firstName" className="sm:text-right text-sm">
-                      First Name
-                    </Label>
-                    <Input
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="col-span-1 sm:col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
-                    <Label htmlFor="comment" className="sm:text-right text-sm">
-                      Comment
-                    </Label>
-                    <Input
-                      id="comment"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      className="col-span-1 sm:col-span-3"
-                    />
-                  </div>
-                </div>
-                {createError && (
-                  <div className="text-sm text-red-500 bg-red-50 p-2 rounded">
-                    {createError}
-                  </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="w-full sm:w-auto"
+              >
+                {refreshing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
                 )}
-                {createSuccess && (
-                  <div className="text-sm text-green-500 bg-green-50 p-2 rounded">
-                    {createSuccess}
-                  </div>
-                )}
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    onClick={handleCreateVoucher}
-                    disabled={createLoading || !profile || !userGroupId || !firstName}
-                    className="w-full sm:w-auto"
-                  >
-                    {createLoading ? 'Creating...' : 'Create Voucher'}
+                Refresh
+              </Button>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Voucher
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px] w-[95%] max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg">Create New Voucher</DialogTitle>
+                    <DialogDescription className="text-sm">
+                      Fill in the details to create a new voucher. Click save when you're done.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                      <Label htmlFor="quantity" className="sm:text-right text-sm">
+                        Quantity
+                      </Label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        value={quantity}
+                        onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                        className="col-span-1 sm:col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                      <Label htmlFor="profile" className="sm:text-right text-sm">
+                        Profile
+                      </Label>
+                      <Select
+                        value={profile}
+                        onValueChange={(value) => {
+                          setProfile(value);
+                          // Auto-populate userGroupId when profile is selected
+                          const selectedOption = profileOptions.find(option => option.profile === value);
+                          if (selectedOption) {
+                            setUserGroupId(selectedOption.userGroupId);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="col-span-1 sm:col-span-3">
+                          <SelectValue placeholder="Select a profile" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {profileOptions.map((option) => (
+                            <SelectItem key={option.profile} value={option.profile}>
+                              {option.showName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                      <Label htmlFor="userGroupId" className="sm:text-right text-sm">
+                        Group ID
+                      </Label>
+                      <Input
+                        id="userGroupId"
+                        value={userGroupId}
+                        onChange={(e) => setUserGroupId(e.target.value)}
+                        className="col-span-1 sm:col-span-3"
+                        placeholder="Auto-populated when profile is selected"
+                        readOnly
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                      <Label htmlFor="firstName" className="sm:text-right text-sm">
+                        First Name
+                      </Label>
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="col-span-1 sm:col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                      <Label htmlFor="comment" className="sm:text-right text-sm">
+                        Comment
+                      </Label>
+                      <Input
+                        id="comment"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        className="col-span-1 sm:col-span-3"
+                      />
+                    </div>
+                  </div>
+                  {createError && (
+                    <div className="text-sm text-red-500 bg-red-50 p-2 rounded">
+                      {createError}
+                    </div>
+                  )}
+                  {createSuccess && (
+                    <div className="text-sm text-green-500 bg-green-50 p-2 rounded">
+                      {createSuccess}
+                    </div>
+                  )}
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      onClick={handleCreateVoucher}
+                      disabled={createLoading || !profile || !userGroupId || !firstName}
+                      className="w-full sm:w-auto"
+                    >
+                      {createLoading ? 'Creating...' : 'Create Voucher'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         

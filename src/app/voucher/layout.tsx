@@ -1,16 +1,14 @@
 import { DashboardNavbar } from "@/app/dashboard/navbar";
 
-export default function VoucherLayout({
-  children,
-}: {
+interface VoucherLayoutProps {
   children: React.ReactNode;
-}) {
+}
+
+export default function VoucherLayout({ children }: VoucherLayoutProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <DashboardNavbar />
-      <main className="container mx-auto py-6">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
