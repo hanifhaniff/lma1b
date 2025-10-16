@@ -64,19 +64,19 @@ const ConstructionLandingPage = () => {
   // Projects data
   const projects = [
     {
-      title: "Modern Office Complex",
-      description: "20-story commercial building with sustainable features",
-      image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      title: "1B STA 90",
+      description: "LMA Project 1B STA 90",
+      image: "/sta90.jpg"
     },
     {
-      title: "Luxury Residential",
-      description: "Custom home with premium finishes and smart technology",
-      image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      title: "1B STA 112",
+      description: "LMA Project 1B STA 112",
+      image: "/sta112.jpg"
     },
     {
-      title: "Retail Center",
-      description: "Mixed-use development with shopping and dining",
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+      title: "1B Site Facility 90",
+      description: "LMA Project 1B Site Facility 90",
+      image: "/sf90.jpg"
     }
   ];
 
@@ -148,8 +148,7 @@ const ConstructionLandingPage = () => {
               </Link>
               <Link href="#main-content" className="hover:text-blue-500 transition-colors">Home</Link>
               <Link href="#services" className="hover:text-blue-500 transition-colors">Services</Link>
-              {/* <Link href="#core-values" className="hover:text-blue-500 transition-colors">Core Values</Link> */}
-              <Link href="#projects" className="hover:text-blue-500 transition-colors">Projects</Link>
+              <Link href="#progress" className="hover:text-blue-500 transition-colors">Progress</Link>
               <Link href="#about" className="hover:text-blue-500 transition-colors">About</Link>
               <Link href="#contact" className="hover:text-blue-500 transition-colors">Contact</Link>
             </div>
@@ -290,7 +289,7 @@ const ConstructionLandingPage = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-muted rounded-lg p-6 h-64 flex items-center justify-center">
                       <img 
-                        src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                        src="/3.jpg" 
                         alt="Construction site" 
                         className="w-full h-full object-cover rounded-lg"
                         loading="lazy"
@@ -298,7 +297,7 @@ const ConstructionLandingPage = () => {
                     </div>
                     <div className="bg-muted rounded-lg p-6 h-64 flex items-center justify-center mt-8">
                       <img 
-                        src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                        src="/1.jpg" 
                         alt="Construction team" 
                         className="w-full h-full object-cover rounded-lg"
                         loading="lazy"
@@ -306,7 +305,7 @@ const ConstructionLandingPage = () => {
                     </div>
                     <div className="bg-muted rounded-lg p-6 h-64 flex items-center justify-center">
                       <img 
-                        src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                        src="/2.jpg" 
                         alt="Construction detail" 
                         className="w-full h-full object-cover rounded-lg"
                         loading="lazy"
@@ -314,7 +313,7 @@ const ConstructionLandingPage = () => {
                     </div>
                     <div className="bg-muted rounded-lg p-6 h-64 flex items-center justify-center mt-8">
                       <img 
-                        src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+                        src="/4.jpg" 
                         alt="Construction equipment" 
                         className="w-full h-full object-cover rounded-lg"
                         loading="lazy"
@@ -356,12 +355,12 @@ const ConstructionLandingPage = () => {
         </section>
 
         {/* Projects Section */}
-        <section id="projects" className="py-20">
+        <section id="progress" className="py-20">
           <div className="container px-4 mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Projects</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Project Progress</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our portfolio of completed construction projects
+                Our collection of project progress updates
               </p>
             </div>
 
