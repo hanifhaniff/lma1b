@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,13 +29,9 @@ export default function FileFoldersClient() {
     setApiBaseUrl(getApiBaseUrl());
   }, []);
 
-  useEffect(() => {
-    if (apiBaseUrl) {
-      fetchItems();
-    }
-  }, [currentPrefix, apiBaseUrl]);
 
-  const fetchItems = async () => {
+
+  const fetchItems = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${apiBaseUrl}/api/file/list?prefix=${encodeURIComponent(currentPrefix)}`);
@@ -50,7 +46,13 @@ export default function FileFoldersClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [apiBaseUrl, currentPrefix]);
+
+  useEffect(() => {
+    if (apiBaseUrl) {
+      fetchItems();
+    }
+  }, [apiBaseUrl, fetchItems]);
 
   const handleFolderClick = (prefix: string) => {
     setCurrentPrefix(prefix);

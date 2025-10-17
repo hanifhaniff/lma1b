@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -42,9 +42,7 @@ export default function FilePageClient() {
     setApiBaseUrl(getApiBaseUrl());
   }, []);
 
-  useEffect(() => {
-    handleFetchItems(currentPrefix);
-  }, [currentPrefix, apiBaseUrl]);
+
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,7 +121,7 @@ export default function FilePageClient() {
     }
   };
 
-  const handleFetchItems = async (prefix: string) => {
+  const handleFetchItems = useCallback(async (prefix: string) => {
     if (!apiBaseUrl) return;
     setIsFetching(true);
     setStatusMessage('Fetching items...');
@@ -141,7 +139,11 @@ export default function FilePageClient() {
     } finally {
       setIsFetching(false);
     }
-  };
+  }, [apiBaseUrl]);
+
+  useEffect(() => {
+    handleFetchItems(currentPrefix);
+  }, [currentPrefix, handleFetchItems]);
 
   const handleFolderClick = (prefix: string) => {
     setCurrentPrefix(prefix);
