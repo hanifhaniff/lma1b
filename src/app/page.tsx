@@ -30,12 +30,9 @@ import {
 import { Target, Briefcase, Shield } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { UserButton } from "@clerk/nextjs";
-import { useUser } from "@clerk/nextjs";
 
 const ConstructionLandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isLoaded, isSignedIn } = useUser();
 
   // Services data
   const services = [
@@ -156,16 +153,6 @@ const ConstructionLandingPage = () => {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            {isLoaded && isSignedIn && (
-              <div className="hidden md:block">
-                <UserButton afterSignOutUrl="/" />
-              </div>
-            )}
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm" aria-label="Dashboard">
-                Dashboard
-              </Button>
-            </Link>
             
             {/* Mobile Menu Button */}
             <Button

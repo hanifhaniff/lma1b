@@ -18,9 +18,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LMA Project 1B",
+  metadataBase: new URL('https://lmaproject1b.com'),
+  title: "PT Lancarjaya Mandiri Abadi - Premier General Contractor in Indonesia",
   description:
-    "PT Lancarjaya Mandiri - Project 1B",
+    "PT Lancarjaya Mandiri Abadi (LMA) is a premier general contractor in Indonesia, renowned for exceptional and timely service. We are a trusted partner for both government and private clients, with core capabilities spanning from earthworks and mining construction to transportation.",
+  keywords: ["general contractor", "construction", "earthworks", "mining construction", "transportation", "Indonesia", "PT Lancarjaya Mandiri Abadi", "LMA"],
+  openGraph: {
+    title: "PT Lancarjaya Mandiri Abadi - Premier General Contractor in Indonesia",
+    description: "PT Lancarjaya Mandiri Abadi (LMA) is a premier general contractor in Indonesia, renowned for exceptional and timely service. We are a trusted partner for both government and private clients, with core capabilities spanning from earthworks and mining construction to transportation.",
+    images: [
+      {
+        url: '/landing.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'PT Lancarjaya Mandiri Abadi Construction Site',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "PT Lancarjaya Mandiri Abadi - Premier General Contractor in Indonesia",
+    description: "PT Lancarjaya Mandiri Abadi (LMA) is a premier general contractor in Indonesia, renowned for exceptional and timely service. We are a trusted partner for both government and private clients, with core capabilities spanning from earthworks and mining construction to transportation.",
+    images: ['/landing.jpg'],
+  },
 };
 
 export default function RootLayout({
