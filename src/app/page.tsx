@@ -144,9 +144,9 @@ const ConstructionLandingPage = () => {
                 Skip to main content
               </Link>
               <Link href="#main-content" className="hover:text-blue-500 transition-colors">Home</Link>
+              <Link href="#about" className="hover:text-blue-500 transition-colors">About</Link>
               <Link href="#services" className="hover:text-blue-500 transition-colors">Services</Link>
               <Link href="#progress" className="hover:text-blue-500 transition-colors">Progress</Link>
-              <Link href="#about" className="hover:text-blue-500 transition-colors">About</Link>
               <Link href="#contact" className="hover:text-blue-500 transition-colors">Contact</Link>
             </div>
           </nav>
