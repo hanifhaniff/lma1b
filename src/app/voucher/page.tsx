@@ -368,7 +368,7 @@ export default function RuijiePage() {
                 Manage and create ruijie Voucher.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={handleRefresh}
@@ -568,9 +568,9 @@ export default function RuijiePage() {
                         {voucher.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">{voucher.packageName}</TableCell>
-                    <TableCell className="whitespace-nowrap">{voucher.firstName}</TableCell>
-                    <TableCell className="max-w-[120px] sm:max-w-xs truncate" title={voucher.comment}>
+                    <TableCell>{voucher.packageName}</TableCell>
+                    <TableCell>{voucher.firstName}</TableCell>
+                    <TableCell className="max-w-[120px] sm:max-w-xs" title={voucher.comment}>
                       {voucher.comment}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">{voucher.usedQuota}</TableCell>

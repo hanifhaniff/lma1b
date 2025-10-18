@@ -595,7 +595,7 @@ const ConstructionLandingPage = () => {
                       <span className="text-xs">f</span>
                     </div>
                   </Link>
-                  <Link href="https://www.instagram.com/ptlma_id/" className="text-blue-200 hover:text-white">
+                  <Link href="https://www.instagram.com/lma_1b/" className="text-blue-200 hover:text-white">
                     <span className="sr-only">Instagram</span>
                     <div className="h-8 w-8 rounded-full border border-blue-500 flex items-center justify-center">
                       <span className="text-xs">ig</span>
