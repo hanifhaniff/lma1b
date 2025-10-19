@@ -27,7 +27,6 @@ export function LaptopViewModal({ laptop, onClose }: LaptopViewModalProps) {
             <DialogTitle className="text-2xl">Laptop Details</DialogTitle>
           </div>
         </DialogHeader>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-4">

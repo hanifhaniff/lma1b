@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, RefreshCw } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, RefreshCw, Image as ImageIcon, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Laptop } from "./laptop-service";
+import { useState, ChangeEvent } from "react";
+import { DragDropImageUpload } from "./drag-drop-image-upload";
 
 const laptopFormSchema = z.object({
   name: z.string().min(2, {
@@ -66,6 +68,11 @@ interface LaptopFormProps {
 }
 
 export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopFormProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
   const form = useForm<LaptopFormValues>({
     resolver: zodResolver(laptopFormSchema),
     defaultValues: {
@@ -85,6 +92,84 @@ export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopF
       image_url: laptop?.image_url || "",
     },
   });
+
+  const handleFileSelection = (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setUploadStatus('Please select an image file');
+      return;
+    }
+    
+    // Validate file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadStatus('File size exceeds 5MB limit');
+      return;
+    }
+    
+    setSelectedFile(file);
+    setUploadStatus(null);
+    
+    // Automatically start upload
+    handleImageUpload(file);
+  };
+
+  const handleImageUpload = async (fileToUpload: File = selectedFile!) => {
+    if (!fileToUpload) {
+      setUploadStatus('Please select an image file first');
+      return;
+    }
+
+    // Generate a temporary laptop ID for new laptops
+    const laptopId = laptop?.id || `temp_${Date.now().toString(36) + Math.random().toString(36).substr(2, 5)}`;
+    
+    setIsUploading(true);
+    setUploadStatus('Starting upload...');
+    setUploadProgress(0);
+
+    const formData = new FormData();
+    formData.append('file', fileToUpload);
+    formData.append('laptopId', laptopId);
+
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(progress);
+        }
+      };
+
+      const requestPromise = new Promise((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Upload failed due to network error'));
+      });
+
+      xhr.open('POST', '/api/laptops/upload');
+      xhr.send(formData);
+
+      const result = await requestPromise as { url: string };
+      form.setValue("image_url", result.url);
+      setUploadStatus('Image uploaded successfully!');
+      setSelectedFile(null);
+    } catch (error: any) {
+      setUploadStatus(`Upload failed: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setUploadProgress(null), 500);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    form.setValue("image_url", "");
+    setSelectedFile(null);
+    setUploadStatus(null);
+  };
 
   return (
     <Form {...form}>
@@ -268,16 +353,20 @@ export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopF
             control={form.control}
             name="image_url"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image URL</FormLabel>
-                <div className="flex gap-2">
-                  <FormControl className="flex-1">
-                    <Input
-                      placeholder="https://example.com/laptop-image.jpg"
-                      className="h-8 w-50"
-                      {...field}
-                    />
-                  </FormControl>
+              <FormItem className="md:col-span-2">
+                <FormLabel>Image</FormLabel>
+                <DragDropImageUpload
+                  onImageUpload={field.onChange}
+                  onImageFileSelect={handleFileSelection}
+                  currentImageUrl={field.value}
+                  onRemoveImage={handleRemoveImage}
+                  isUploading={isUploading}
+                  uploadProgress={uploadProgress}
+                  uploadStatus={uploadStatus}
+                />
+                
+                {/* Generate dummy button */}
+                <div className="pt-2">
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -292,14 +381,17 @@ export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopF
                       const textColor = "64748b";
                       const imageUrl = `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodeURIComponent(randomLaptop)}`;
                       form.setValue("image_url", imageUrl);
+                      setUploadStatus(null);
+                      setSelectedFile(null);
                     }}
                   >
-                    Generate Dummy
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    Generate Dummy Image
                   </Button>
+                  <FormDescription className="mt-2">
+                    Drag and drop an image file, paste from clipboard (Ctrl+V), or use the "Generate Dummy" option for a placeholder
+                  </FormDescription>
                 </div>
-                <FormDescription>
-                  Enter the URL of the laptop image (optional) or click &quot;Generate Dummy&quot; for a placeholder
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -330,12 +422,13 @@ export function LaptopForm({ laptop, onSubmit, onCancel, isSubmitting }: LaptopF
             variant="outline" 
             onClick={onCancel}
             className="px-4"
+            disabled={isSubmitting || isUploading}
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploading}
             className="px-6"
           >
             {isSubmitting ? (
