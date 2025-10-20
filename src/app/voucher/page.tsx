@@ -59,6 +59,11 @@ const profileOptions = [
     userGroupId: '294268',
     profile: '80086006291093442640481709466748',
     showName: 'LMA_KP'
+  },
+  {
+    userGroupId: '301025',
+    profile: '12950090166979359734550651278732',
+    showName: 'LMA_STAFF_10GB'
   }
 ];
 
@@ -66,6 +71,13 @@ export default function RuijiePage() {
   // Clerk authentication
   const { isLoaded, isSignedIn } = useUser();
   
+  const [listId, setListId] = useState('6435153'); // Default to '1B Office'
+
+  const listOptions = [
+    { value: '6435153', label: '1B Office' },
+    { value: '6331978', label: 'LMA pad 3' },
+  ];
+
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [filteredVouchers, setFilteredVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
@@ -100,7 +112,7 @@ export default function RuijiePage() {
     }
     
     try {
-      const response = await fetch('/api/ruijie');
+      const response = await fetch(`/api/vouchers?listId=${listId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch vouchers: ${response.status} ${response.statusText}`);
       }
@@ -144,7 +156,7 @@ export default function RuijiePage() {
     if (!isLoaded) return; // Don't fetch if user is not loaded
     if (!isSignedIn) return; // Don't fetch if not signed in
     fetchVouchers();
-  }, [isLoaded, isSignedIn]); // Add isLoaded and isSignedIn as dependencies
+  }, [isLoaded, isSignedIn, listId]); // Add listId as a dependency
 
   // Handle refresh button click
   const handleRefresh = () => {
@@ -163,9 +175,10 @@ export default function RuijiePage() {
         if (searchVoucherCode.trim()) {
           params.append('searchVoucherCode', searchVoucherCode.trim());
         }
+        params.append('listId', listId);
         
         // Fetch filtered data from API
-        const response = await fetch(`/api/ruijie?${params.toString()}`);
+        const response = await fetch(`/api/vouchers?${params.toString()}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch filtered vouchers: ${response.status} ${response.statusText}`);
         }
@@ -202,7 +215,7 @@ export default function RuijiePage() {
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [searchFirstName, searchVoucherCode, vouchers]);
+  }, [searchFirstName, searchVoucherCode, vouchers, listId]);
 
   // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -227,7 +240,7 @@ export default function RuijiePage() {
     setCreateSuccess(null);
     
     try {
-      const response = await fetch('/api/ruijie', {
+      const response = await fetch(`/api/vouchers?listId=${listId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,6 +381,7 @@ export default function RuijiePage() {
                 Manage and create ruijie Voucher.
               </p>
             </div>
+            
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
@@ -546,7 +560,20 @@ export default function RuijiePage() {
         </div>
         
         <CardContent className="p-2 sm:p-6">
-          {/* Mobile-friendly table with horizontal scroll */}
+          <div className="mb-4">
+            <Select value={listId} onValueChange={(value) => setListId(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a location" />
+              </SelectTrigger>
+              <SelectContent>
+                {listOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

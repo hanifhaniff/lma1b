@@ -40,9 +40,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const searchFirstName = searchParams.get('searchFirstName');
     const searchVoucherCode = searchParams.get('searchVoucherCode');
+    const listId = searchParams.get('listId') || '6435153'; // Default to '1B Office'
 
     // Construct the API URL with query parameters
-    const apiUrl = `https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/getList/6435153?access_token=${accessToken}&start=0&pageSize=300&tenantId=504179`;
+    const apiUrl = `https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/getList/${listId}?access_token=${accessToken}&start=0&pageSize=300&tenantId=504179`;
 
     // Fetch data from the Ruijie API
     const response = await fetch(apiUrl, {
@@ -183,6 +184,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract listId from query parameters, with a default value
+    const { searchParams } = new URL(request.url);
+    const listId = searchParams.get('listId') || '6435153'; // Default to '1B Office'
+
     // Parse the request body
     const body: CreateVoucherRequest = await request.json();
     
@@ -197,8 +202,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Construct the API URL
-    const apiUrl = `https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/create/6435153?access_token=${accessToken}`;
-
+    const apiUrl = `https://cloud-as.ruijienetworks.com/service/api/open/auth/voucher/create/${listId}?access_token=${accessToken}`;
+    console.log(apiUrl)
     // Prepare the request body
     const requestBody = {
       quantity,
