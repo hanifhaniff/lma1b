@@ -362,9 +362,6 @@ const ConstructionLandingPage = () => {
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                      <Button className="w-full bg-white text-black hover:bg-gray-200" aria-label={`View details for ${project.title}`}>
-                        View Details
-                      </Button>
                     </div>
                   </div>
                   <CardHeader>
@@ -451,7 +448,7 @@ const ConstructionLandingPage = () => {
               <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h2>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Get in touch with our team
+                  Get in touch with us
                 </p>
               </div>
 
@@ -640,9 +637,7 @@ const ConstructionLandingPage = () => {
                 </address>
               </div>
             </div>
-
             <Separator className="my-8 bg-blue-800" />
-
             <div className="text-center text-sm text-blue-300">
               {/* © {new Date().getFullYear()} PT.Lancarjaya Mandiri Abadi. All rights reserved. */}
               Made With ❤ by PT.Lancarjaya Mandiri Abadi
