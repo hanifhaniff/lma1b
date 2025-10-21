@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Upload, Download, File, Trash2, Loader2, Eye, EyeOff, Share, Folder, ArrowLeft, FolderPlus } from 'lucide-react';
 import ShareModal from './ShareModal';
 
@@ -313,10 +314,6 @@ export default function FilePageClient() {
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Stored Files</h2>
                 <div className="flex gap-2">
-                  <Button onClick={() => window.location.href = '/file/folders'} variant="outline" size="sm">
-                    <Folder className="mr-2 h-4 w-4" />
-                    Folder View
-                  </Button>
                   <Button onClick={() => setCreateFolderDialogOpen(true)} variant="outline" size="sm">
                     <FolderPlus className="mr-2 h-4 w-4" />
                     Create Folder
@@ -336,12 +333,29 @@ export default function FilePageClient() {
                 </div>
               </div>
 
-              {currentPrefix && (
-                <Button onClick={handleBackClick} variant="outline" size="sm">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              )}
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPrefix(''); }}>Root</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  {currentPrefix.split('/').filter(Boolean).map((part, index) => {
+                    const prefix = currentPrefix.split('/').slice(0, index + 1).join('/') + '/';
+                    const isLast = index === currentPrefix.split('/').filter(Boolean).length - 1;
+                    return (
+                      <React.Fragment key={`breadcrumb-${index}-${part}`}>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          {isLast ? (
+                            <BreadcrumbPage>{part}</BreadcrumbPage>
+                          ) : (
+                            <BreadcrumbLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPrefix(prefix); }}>{part}</BreadcrumbLink>
+                          )}
+                        </BreadcrumbItem>
+                      </React.Fragment>
+                    );
+                  })}
+                </BreadcrumbList>
+              </Breadcrumb>
 
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full">
@@ -353,8 +367,8 @@ export default function FilePageClient() {
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
+                    {items.map((item) => (
+                      <tr key={item.type === 'folder' ? `folder-${item.prefix}` : `file-${item.file_key}`} className={items.indexOf(item) % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             {item.type === 'folder' ? <Folder className="h-4 w-4" /> : <File className="h-4 w-4" />}
