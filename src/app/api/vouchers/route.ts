@@ -15,6 +15,7 @@ interface Voucher {
   firstName: string;
   comment: string;
   usedQuota: number;
+  userGroupId?: string | number;
   maxClients?: number;
   currentClients?: number;
 }
@@ -119,6 +120,7 @@ export async function GET(request: NextRequest) {
         firstName: voucher.firstName || '',
         comment: voucher.comment || '',
         usedQuota: voucher.usedQuota || 0,
+        userGroupId: voucher.userGroupId,
         maxClients: voucher.maxClients || 0,
         currentClients: voucher.currentClients || 0
       };

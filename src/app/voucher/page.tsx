@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { Search, ChevronLeft, ChevronRight, Plus, Lock, Eye, EyeOff, RefreshCw, Loader2, CheckCircle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Plus, BarChart3, Lock, Eye, EyeOff, RefreshCw, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,6 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { VoucherChartModal } from './VoucherChartModal';
 
 interface Voucher {
   voucherCode: string;
@@ -26,6 +27,7 @@ interface Voucher {
   firstName: string;
   comment: string;
   usedQuota: number;
+  userGroupId?: string | number;
   maxClients?: number;
   currentClients?: number;
 }
@@ -97,6 +99,9 @@ export default function RuijiePage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  
+  // Chart modal state
+  const [isChartModalOpen, setIsChartModalOpen] = useState(false);
   
   // Form state
   const [quantity, setQuantity] = useState(1);
@@ -397,6 +402,14 @@ export default function RuijiePage() {
                   <RefreshCw className="h-4 w-4 mr-2" />
                 )}
                 Refresh
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsChartModalOpen(true)}
+                className="w-full sm:w-auto"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Chart
               </Button>
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
@@ -739,6 +752,11 @@ export default function RuijiePage() {
           )}
         </CardContent>
       </Card>
+      <VoucherChartModal 
+        isOpen={isChartModalOpen} 
+        onOpenChange={setIsChartModalOpen} 
+        vouchers={vouchers} 
+      />
     </div>
   );
 }
