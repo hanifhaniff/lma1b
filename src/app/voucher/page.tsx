@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Search, ChevronLeft, ChevronRight, Plus, Lock, Eye, EyeOff, RefreshCw, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,7 +106,7 @@ export default function RuijiePage() {
   const [comment, setComment] = useState('');
 
   // Fetch vouchers from API
-  const fetchVouchers = async (isRefresh = false) => {
+  const fetchVouchers = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -151,14 +151,14 @@ export default function RuijiePage() {
         setLoading(false);
       }
     }
-  };
+  }, [listId]);
 
   // Initial fetch on component mount
   useEffect(() => {
     if (!isLoaded) return; // Don't fetch if user is not loaded
     if (!isSignedIn) return; // Don't fetch if not signed in
     fetchVouchers();
-  }, [isLoaded, isSignedIn, listId]); // Add listId as a dependency
+  }, [isLoaded, isSignedIn, fetchVouchers]); // Fetch data when auth state or list changes
 
   // Handle refresh button click
   const handleRefresh = () => {
