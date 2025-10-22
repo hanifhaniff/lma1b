@@ -142,7 +142,7 @@ export function VoucherChartModal({
               </div>
               
               {topVouchers.length > 0 ? (
-                <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <ChartContainer config={chartConfig} className="h-[280px] w-full">
                   <BarChart
                     data={chartData}
                     margin={{
