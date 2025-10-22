@@ -15,6 +15,8 @@ interface Voucher {
   firstName: string;
   comment: string;
   usedQuota: number;
+  maxClients?: number;
+  currentClients?: number;
 }
 
 interface ApiResponse {
@@ -116,7 +118,9 @@ export async function GET(request: NextRequest) {
         packageName: voucher.packageName || '',
         firstName: voucher.firstName || '',
         comment: voucher.comment || '',
-        usedQuota: voucher.usedQuota || 0
+        usedQuota: voucher.usedQuota || 0,
+        maxClients: voucher.maxClients || 0,
+        currentClients: voucher.currentClients || 0
       };
     });
     

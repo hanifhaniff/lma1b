@@ -26,6 +26,8 @@ interface Voucher {
   firstName: string;
   comment: string;
   usedQuota: number;
+  maxClients?: number;
+  currentClients?: number;
 }
 
 // Define profile options
@@ -584,6 +586,7 @@ export default function RuijiePage() {
                   <TableHead className="whitespace-nowrap">First Name</TableHead>
                   <TableHead className="whitespace-nowrap">Comment</TableHead>
                   <TableHead className="whitespace-nowrap">Used Quota/Mb</TableHead>
+                  <TableHead className="whitespace-nowrap">Device</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -601,6 +604,9 @@ export default function RuijiePage() {
                       {voucher.comment}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">{voucher.usedQuota}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {voucher.currentClients || 0}/{voucher.maxClients || 0}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
