@@ -83,26 +83,26 @@ export function DashboardNavbar() {
   const [open, setOpen] = useState(false);
   const { theme } = useTheme();
   const pathname = usePathname();
-  
+
   return (
     <header className="border-b">
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2 font-bold">
-            <Image 
-              src="/lma.png" 
-              alt="LMA Logo" 
-              width={24} 
-              height={24} 
+            <Image
+              src="/lma.png"
+              alt="LMA Logo"
+              width={24}
+              height={24}
               className="h-6 w-6"
             />
-            <span>LMA</span>
+            <span className="text-lg font-semibold">LMA</span>
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
+        <nav className="hidden md:flex items-center gap-4 text-sm font-medium" aria-label="Main navigation">
           {NAVIGATION_ITEMS.map((item) => {
             const Icon = item.icon;
             if (item.hasDropdown && item.dropdownItems) {
@@ -111,7 +111,7 @@ export function DashboardNavbar() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg"
                       aria-expanded="false"
                       aria-haspopup="menu"
                     >
@@ -147,7 +147,7 @@ export function DashboardNavbar() {
                 href={item.href}
                 className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
                   pathname === item.href
-                    ? "bg-muted text-foreground"
+                    ? "bg-muted text-foreground font-medium"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 aria-current={pathname === item.href ? "page" : undefined}
@@ -162,7 +162,7 @@ export function DashboardNavbar() {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <UserButton afterSignOutUrl="/" />
-          
+
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -176,30 +176,36 @@ export function DashboardNavbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[260px]">
-              <div className="flex flex-col gap-4 mt-8">
+              <div className="flex flex-col gap-1 mt-8">
                 {NAVIGATION_ITEMS.map((item) => {
                   const Icon = item.icon;
                   if (item.hasDropdown && item.dropdownItems) {
                     return (
-                      <div key={item.href}>
-                        <p className="px-3 py-2 text-sm font-medium text-foreground uppercase tracking-wider">
+                      <div key={item.href} className="mb-2">
+                        <p className="px-3 py-2 text-sm font-medium text-foreground uppercase tracking-wider bg-muted rounded-t-lg">
                           {item.title} Management
                         </p>
-                        {item.dropdownItems.map((dropdownItem) => {
-                          const DropdownIcon = dropdownItem.icon;
-                          return (
-                            <Link
-                              key={dropdownItem.href}
-                              href={dropdownItem.href}
-                              className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors text-muted-foreground hover:text-foreground pl-6"
-                              onClick={() => setOpen(false)}
-                              aria-current={pathname === dropdownItem.href ? "page" : undefined}
-                            >
-                              <DropdownIcon className="h-4 w-4" aria-hidden="true" />
-                              <span>{dropdownItem.title}</span>
-                            </Link>
-                          );
-                        })}
+                        <div className="pl-2">
+                          {item.dropdownItems.map((dropdownItem) => {
+                            const DropdownIcon = dropdownItem.icon;
+                            return (
+                              <Link
+                                key={dropdownItem.href}
+                                href={dropdownItem.href}
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+                                  pathname === dropdownItem.href
+                                    ? "bg-primary text-primary-foreground"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                onClick={() => setOpen(false)}
+                                aria-current={pathname === dropdownItem.href ? "page" : undefined}
+                              >
+                                <DropdownIcon className="h-4 w-4" aria-hidden="true" />
+                                <span>{dropdownItem.title}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   }
@@ -209,7 +215,7 @@ export function DashboardNavbar() {
                       href={item.href}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
                         pathname === item.href
-                          ? "bg-muted text-foreground"
+                          ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                       onClick={() => setOpen(false)}

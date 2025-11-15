@@ -9,7 +9,28 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Upload, Download, File, Trash2, Loader2, Eye, EyeOff, Share, Folder, ArrowLeft, FolderPlus } from 'lucide-react';
+import {
+  Upload,
+  Download,
+  File,
+  Trash2,
+  Loader2,
+  Eye,
+  EyeOff,
+  Share,
+  Folder,
+  FolderPlus,
+  Search,
+  Grid3X3,
+  List,
+  MoreVertical,
+  FileText,
+  Image as ImageIcon,
+  Video,
+  AudioWaveform,
+  Archive,
+  X
+} from 'lucide-react';
 import ShareModal from './ShareModal';
 
 export default function FilePageClient() {
@@ -37,13 +58,18 @@ export default function FilePageClient() {
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
   const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Added view mode
+  const [searchQuery, setSearchQuery] = useState<string>(''); // Added search functionality
 
   useEffect(() => {
     const getApiBaseUrl = () => window.location.origin;
     setApiBaseUrl(getApiBaseUrl());
   }, []);
 
-
+  // Filter items based on search query
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,12 +128,12 @@ export default function FilePageClient() {
       xhr.send(formData);
 
       const result = await requestPromise;
-      
+
       setUploadDialogType('success');
       setUploadDialogMessage(`File uploaded successfully: ${(result as any).originalName}`);
       setUploadDialogOpen(true);
       setUploadProgress(100);
-      
+
       if (fileInputRef.current) fileInputRef.current.value = '';
       setSelectedFile(null);
       setUploadPassword('');
@@ -238,105 +264,223 @@ export default function FilePageClient() {
     }
   };
 
+  // Function to get icon based on file type
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+
+    if (ext) {
+      if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(ext)) {
+        return <ImageIcon className="h-5 w-5" />;
+      }
+      if (['mp4', 'avi', 'mov', 'mkv'].includes(ext)) {
+        return <Video className="h-5 w-5" />;
+      }
+      if (['mp3', 'wav', 'flac', 'ogg'].includes(ext)) {
+        return <AudioWaveform className="h-5 w-5" />;
+      }
+      if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+        return <Archive className="h-5 w-5" />;
+      }
+      if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(ext)) {
+        return <FileText className="h-5 w-5" />;
+      }
+    }
+
+    return <File className="h-5 w-5" />;
+  };
+
+  // Format file size
+  const formatFileSize = (size: number) => {
+    if (size === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(size) / Math.log(k));
+    return parseFloat((size / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">File Management</CardTitle>
-          <CardDescription>Upload, store, and Secure File</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-8">
-            {/* Upload Section */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Upload File</h2>
-              <div className="flex flex-col sm:flex-row gap-4 items-start">
-                <Input
-                  type="file"
-                  onChange={handleFileChange}
-                  disabled={isUploading}
-                  ref={fileInputRef}
-                  className="flex-1"
-                />
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">File Management</h1>
+              <p className="text-muted-foreground mt-1">
+                Upload, store, and organize your files securely
+              </p>
+            </div>
+          </div>
+
+          {/* Upload Card */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Upload New File</CardTitle>
+              <CardDescription>Upload files to your storage space</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="w-full">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Input
+                        type="file"
+                        onChange={handleFileChange}
+                        disabled={isUploading}
+                        ref={fileInputRef}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleUpload}
+                      disabled={!selectedFile || isUploading}
+                      className="w-full sm:w-auto"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {selectedFile && (
+                    <div className="mt-4 p-4 bg-muted rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          {getFileIcon(selectedFile.name)}
+                          <span className="font-medium truncate max-w-xs">{selectedFile.name}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Size: {formatFileSize(selectedFile.size)}
+                      </div>
+
+                      <div className="mt-3 flex items-center space-x-2">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={uploadPassword}
+                          onChange={handlePasswordChange}
+                          placeholder="Password protection (optional)"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={togglePasswordVisibility}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Files with passwords will require the password for download
+                      </p>
+                    </div>
+                  )}
+
+                  {uploadProgress !== null && (
+                    <div className="mt-4">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Uploading...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <Progress value={uploadProgress} className="h-2" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* File Browser Section */}
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <CardTitle className="text-lg">File Browser</CardTitle>
+                <CardDescription>
+                  Manage your files and folders
+                </CardDescription>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search files..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-full"
+                  />
+                </div>
+
+                <div className="flex gap-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="p-2"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="p-2"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Button onClick={() => setCreateFolderDialogOpen(true)} size="sm">
+                  <FolderPlus className="mr-2 h-4 w-4" />
+                  New Folder
+                </Button>
                 <Button
-                  onClick={handleUpload}
-                  disabled={!selectedFile || isUploading}
-                  className="w-full sm:w-auto"
+                  onClick={() => handleFetchItems(currentPrefix)}
+                  disabled={isFetching}
+                  variant="outline"
+                  size="sm"
                 >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
+                  {isFetching ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sync</>
                   ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload
-                    </>
+                    'Refresh'
                   )}
                 </Button>
               </div>
+            </CardHeader>
 
-              {selectedFile && (
-                <div className="mt-2 space-y-4">
-                  <div className="text-sm text-muted-foreground">
-                    Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      value={uploadPassword}
-                      onChange={handlePasswordChange}
-                      placeholder="Password (optional)"
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={togglePasswordVisibility}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Leave password empty if you don't want to protect this file
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* File List Section */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Stored Files</h2>
-                <div className="flex gap-2">
-                  <Button onClick={() => setCreateFolderDialogOpen(true)} variant="outline" size="sm">
-                    <FolderPlus className="mr-2 h-4 w-4" />
-                    Create Folder
-                  </Button>
-                  <Button
-                    onClick={() => handleFetchItems(currentPrefix)}
-                    disabled={isFetching}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {isFetching ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Refreshing...</>
-                    ) : (
-                      'Refresh'
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              <Breadcrumb>
+            <CardContent>
+              {/* Breadcrumb */}
+              <Breadcrumb className="mb-4">
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPrefix(''); }}>Root</BreadcrumbLink>
+                    <BreadcrumbLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPrefix(''); }}>
+                      Root
+                    </BreadcrumbLink>
                   </BreadcrumbItem>
                   {currentPrefix.split('/').filter(Boolean).map((part, index) => {
                     const prefix = currentPrefix.split('/').slice(0, index + 1).join('/') + '/';
@@ -348,7 +492,9 @@ export default function FilePageClient() {
                           {isLast ? (
                             <BreadcrumbPage>{part}</BreadcrumbPage>
                           ) : (
-                            <BreadcrumbLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPrefix(prefix); }}>{part}</BreadcrumbLink>
+                            <BreadcrumbLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPrefix(prefix); }}>
+                              {part}
+                            </BreadcrumbLink>
                           )}
                         </BreadcrumbItem>
                       </React.Fragment>
@@ -357,74 +503,181 @@ export default function FilePageClient() {
                 </BreadcrumbList>
               </Breadcrumb>
 
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="text-left p-3">Name</th>
-                      <th className="text-left p-3">Type</th>
-                      <th className="text-left p-3">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((item) => (
-                      <tr key={item.type === 'folder' ? `folder-${item.prefix}` : `file-${item.file_key}`} className={items.indexOf(item) % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
-                        <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            {item.type === 'folder' ? <Folder className="h-4 w-4" /> : <File className="h-4 w-4" />}
-                            <a 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (item.type === 'folder') handleFolderClick(item.prefix);
-                              }}
-                              className={item.type === 'folder' ? 'cursor-pointer hover:underline' : ''}
-                            >
-                              {item.name}
-                            </a>
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <Badge variant={item.type === 'folder' ? 'secondary' : 'outline'}>
-                            {item.type}
-                          </Badge>
-                        </td>
-                        <td className="p-3">
-                          {item.type === 'file' && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDownload(item.file_key, item.name)}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => prepareShare(item.file_key, item.name, item.password_protected)}
-                              >
-                                <Share className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => prepareDelete(item.file_key, item.name)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+              {/* Files and Folders Display */}
+              {filteredItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <File className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-1">No files found</h3>
+                  <p className="text-muted-foreground">
+                    {searchQuery ? 'No files match your search' : 'Upload a file or create a folder to get started'}
+                  </p>
+                </div>
+              ) : viewMode === 'grid' ? (
+                // Grid View
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {filteredItems.map((item) => (
+                    <div
+                      key={item.type === 'folder' ? `folder-${item.prefix}` : `file-${item.file_key}`}
+                      className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className={`p-3 rounded-full ${item.type === 'folder' ? 'bg-blue-100 text-blue-600' : 'bg-muted'} mb-3`}>
+                          {item.type === 'folder' ? (
+                            <Folder className="h-6 w-6" />
+                          ) : (
+                            getFileIcon(item.name)
                           )}
-                        </td>
+                        </div>
+                        <h3 className="font-medium truncate w-full mb-2">{item.name}</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          {item.type === 'file' && (
+                            <>
+                              <Badge variant="outline" className="text-xs">
+                                {item.type}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {formatFileSize(item.size || 0)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        {item.type === 'folder' ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-4 w-full"
+                            onClick={() => handleFolderClick(item.prefix)}
+                          >
+                            Open
+                          </Button>
+                        ) : (
+                          <div className="flex gap-1 mt-4 w-full">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownload(item.file_key, item.name)}
+                              className="flex-1"
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => prepareShare(item.file_key, item.name, item.password_protected)}
+                              className="p-2"
+                            >
+                              <Share className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // List View
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left p-3">Name</th>
+                        <th className="text-left p-3">Type</th>
+                        <th className="text-left p-3">Size</th>
+                        <th className="text-left p-3">Modified</th>
+                        <th className="text-right p-3">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                    </thead>
+                    <tbody>
+                      {filteredItems.map((item) => (
+                        <tr
+                          key={item.type === 'folder' ? `folder-${item.prefix}` : `file-${item.file_key}`}
+                          className="border-b last:border-b-0 hover:bg-muted/50"
+                        >
+                          <td className="p-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded ${item.type === 'folder' ? 'bg-blue-100 text-blue-600' : 'bg-muted'}`}>
+                                {item.type === 'folder' ? <Folder className="h-4 w-4" /> : getFileIcon(item.name)}
+                              </div>
+                              <div>
+                                <div className="font-medium">
+                                  <a
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (item.type === 'folder') handleFolderClick(item.prefix);
+                                    }}
+                                    className={item.type === 'folder' ? 'cursor-pointer hover:underline' : ''}
+                                  >
+                                    {item.name}
+                                  </a>
+                                </div>
+                                {item.type === 'folder' && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {items.filter(i => i.prefix && i.prefix.startsWith(item.prefix)).length} items
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <Badge variant={item.type === 'folder' ? 'secondary' : 'outline'}>
+                              {item.type}
+                            </Badge>
+                          </td>
+                          <td className="p-3">
+                            {item.type === 'file' ? formatFileSize(item.size || 0) : '-'}
+                          </td>
+                          <td className="p-3">
+                            {item.modified || formatDate(new Date().toISOString())}
+                          </td>
+                          <td className="p-3 text-right">
+                            {item.type === 'file' && (
+                              <div className="flex gap-2 justify-end">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDownload(item.file_key, item.name)}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => prepareShare(item.file_key, item.name, item.password_protected)}
+                                >
+                                  <Share className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => prepareDelete(item.file_key, item.name)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                            {item.type === 'folder' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleFolderClick(item.prefix)}
+                              >
+                                Open
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Create Folder Dialog */}
       <AlertDialog open={createFolderDialogOpen} onOpenChange={setCreateFolderDialogOpen}>
@@ -440,6 +693,7 @@ export default function FilePageClient() {
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               placeholder="Folder name"
+              autoFocus
             />
           </div>
           <AlertDialogFooter>
@@ -450,8 +704,8 @@ export default function FilePageClient() {
       </AlertDialog>
 
       {/* Other Dialogs */}
-      <AlertDialog 
-        open={uploadDialogOpen} 
+      <AlertDialog
+        open={uploadDialogOpen}
         onOpenChange={(open) => {
           setUploadDialogOpen(open);
           if (!open) {
@@ -494,7 +748,7 @@ export default function FilePageClient() {
             <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >

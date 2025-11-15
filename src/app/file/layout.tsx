@@ -6,9 +6,9 @@ interface FileLayoutProps {
 
 export default function FileLayout({ children }: FileLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50">
       <DashboardNavbar />
-      <main className="flex-1">{children}</main>
+      <main className="py-4 md:py-8 px-4 container mx-auto">{children}</main>
     </div>
   );
 }

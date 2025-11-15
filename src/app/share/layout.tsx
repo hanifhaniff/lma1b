@@ -4,8 +4,8 @@ export default function ShareLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-1 flex items-center justify-center p-4">{children}</main>
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50">
+      <main className="flex items-center justify-center p-4 container mx-auto">{children}</main>
     </div>
   );
 }
