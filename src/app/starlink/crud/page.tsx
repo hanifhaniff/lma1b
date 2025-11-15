@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import Swal from 'sweetalert2';
 import { StarlinkUsage } from '@/lib/starlink-usage';
 import {
@@ -215,10 +216,67 @@ const StarlinkUsageCRUD = () => {
   if (loading) {
     return (
       <div className="container mx-auto py-10 px-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">CRUD Pemakaian Starlink</h1>
-          <p>Loading data...</p>
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <Skeleton className="h-8 w-64 mx-auto" />
+          <Skeleton className="h-4 w-80 mx-auto mt-4" />
         </div>
+
+        {/* Table Card Skeleton */}
+        <Card className="shadow-lg border-0 bg-white">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-64 mt-2" />
+              </div>
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="overflow-x-auto">
+              <Table className="min-w-full">
+                <TableHeader>
+                  <TableRow className="border-b border-gray-100 hover:bg-transparent">
+                    <TableHead className="text-gray-700 font-semibold">
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                    <TableHead className="text-gray-700 font-semibold">
+                      <Skeleton className="h-4 w-24" />
+                    </TableHead>
+                    <TableHead className="text-gray-700 font-semibold">
+                      <Skeleton className="h-4 w-28" />
+                    </TableHead>
+                    <TableHead className="text-gray-700 font-semibold">
+                      <Skeleton className="h-4 w-16" />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <TableRow key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <TableCell className="py-4">
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <div className="flex gap-2">
+                          <Skeleton className="h-8 w-16" />
+                          <Skeleton className="h-8 w-16" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

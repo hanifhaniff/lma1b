@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import StarlinkUsageChart from '@/components/starlink-usage-chart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Define the data type for when we group by date and unit
 interface StarlinkUsageByDateAndUnit {
@@ -104,9 +105,133 @@ const StarlinkUsagePage = () => {
   if (loading) {
     return (
       <div className="container mx-auto py-10 px-4">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Pemakaian Starlink</h1>
-          <p>Loading chart data...</p>
+        {/* Header Skeleton */}
+        <div className="mb-8">
+          <Skeleton className="h-8 w-64 mx-auto" />
+          <Skeleton className="h-4 w-48 mx-auto mt-4" />
+        </div>
+
+        {/* Chart Card Skeleton */}
+        <Card className="mb-8 shadow-lg border-0 bg-white">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-64 mt-2" />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-32" />
+                </div>
+                <div className="flex gap-1 bg-gray-100 rounded-md p-1">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-20 ml-1" />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="py-6">
+            <div className="h-80 flex items-center justify-center">
+              <Skeleton className="h-64 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Summary Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 justify-items-center">
+          <Card className="shadow-md border-0 bg-gradient-to-br from-blue-50 to-blue-100 w-full max-w-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="rounded-full bg-blue-100 p-3 mr-4">
+                  <Skeleton className="h-6 w-6" />
+                </div>
+                <div>
+                  <Skeleton className="h-5 w-32 mb-2" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-32 mt-3" />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-md border-0 bg-gradient-to-br from-green-50 to-green-100 w-full max-w-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="rounded-full bg-green-100 p-3 mr-4">
+                  <Skeleton className="h-6 w-6" />
+                </div>
+                <div>
+                  <Skeleton className="h-5 w-32 mb-2" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-32 mt-3" />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-md border-0 bg-gradient-to-br from-purple-50 to-purple-100 w-full max-w-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="rounded-full bg-purple-100 p-3 mr-4">
+                  <Skeleton className="h-6 w-6" />
+                </div>
+                <div>
+                  <Skeleton className="h-5 w-32 mb-2" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-4 w-32 mt-3" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Unit Cards Skeleton */}
+        <div className="mb-8">
+          <Card className="shadow-lg border-0 bg-white">
+            <CardHeader className="border-b border-gray-100">
+              <Skeleton className="h-6 w-64" />
+              <Skeleton className="h-4 w-80 mt-2" />
+            </CardHeader>
+            <CardContent className="pt-6 flex justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 place-items-center w-full max-w-6xl">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="border border-gray-200 rounded-xl p-5 text-center bg-white w-full max-w-xs">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                      <Skeleton className="h-6 w-6" />
+                    </div>
+                    <Skeleton className="h-5 w-24 mx-auto mb-2" />
+                    <Skeleton className="h-7 w-20 mx-auto mb-1" />
+                    <Skeleton className="h-4 w-28 mx-auto mb-1" />
+                    <Skeleton className="h-3 w-24 mx-auto" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Monthly Summary Skeleton */}
+        <div>
+          <Card className="shadow-lg border-0 bg-white">
+            <CardHeader className="border-b border-gray-100">
+              <Skeleton className="h-6 w-64" />
+              <Skeleton className="h-4 w-80 mt-2" />
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="border border-gray-200 rounded-xl p-5 text-center bg-white">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+                      <Skeleton className="h-6 w-6" />
+                    </div>
+                    <Skeleton className="h-5 w-24 mx-auto mb-2" />
+                    <Skeleton className="h-7 w-20 mx-auto mb-1" />
+                    <Skeleton className="h-4 w-28 mx-auto" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
