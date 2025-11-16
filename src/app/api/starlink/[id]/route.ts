@@ -1,18 +1,34 @@
 import { NextRequest } from 'next/server';
-import { updateStarlinkUsage, deleteStarlinkUsage } from '@/lib/starlink-usage';
+import { updateStarlinkUsage, deleteStarlinkUsage, getStarlinkUsage } from '@/lib/starlink-usage';
 
 // Get the ID from the route
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = parseInt(params.id, 10);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
       return Response.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
     const body = await request.json();
-    
+
+    // Check for duplicate unit on the same date (excluding current record)
+    const existingRecords = await getStarlinkUsage({
+      startDate: body.tanggal,
+      endDate: body.tanggal,
+      unit: body.unit_starlink
+    });
+
+    // Check if there's a duplicate, excluding the current record being updated
+    const duplicateRecord = existingRecords.find(record => record.id !== numericId);
+    if (duplicateRecord) {
+      return Response.json({
+        error: `Duplicate entry: Unit "${body.unit_starlink}" already exists for date ${body.tanggal}`
+      }, { status: 409 });
+    }
+
     // Update the record
-    const updatedUsage = await updateStarlinkUsage(id, {
+    const updatedUsage = await updateStarlinkUsage(numericId, {
       tanggal: body.tanggal,
       unit_starlink: body.unit_starlink,
       total_pemakaian: body.total_pemakaian,
@@ -29,14 +45,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = parseInt(params.id, 10);
-    if (isNaN(id)) {
+    const { id } = await params;
+    const numericId = parseInt(id, 10);
+    if (isNaN(numericId)) {
       return Response.json({ error: 'Invalid ID' }, { status: 400 });
     }
 
-    const success = await deleteStarlinkUsage(id);
+    const success = await deleteStarlinkUsage(numericId);
 
     if (!success) {
       return Response.json({ error: 'Failed to delete record' }, { status: 500 });

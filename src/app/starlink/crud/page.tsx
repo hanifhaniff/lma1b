@@ -77,6 +77,25 @@ const StarlinkUsageCRUD = () => {
 
   const handleSave = async () => {
     try {
+      // Check for duplicate data on the same date before saving
+      const duplicateFound = usageData.some(
+        (item) =>
+          item.tanggal === tanggal &&
+          item.unit_starlink === unitStarlink &&
+          (isEditing ? item.id !== currentRecord?.id : true) // Exclude current record when editing
+      );
+
+      if (duplicateFound) {
+        Swal.fire({
+          title: 'Peringatan!',
+          text: `Data untuk unit "${unitStarlink}" pada tanggal ${tanggal} sudah ada. Harap pilih tanggal atau unit yang berbeda.`,
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#f59e0b',
+        });
+        return;
+      }
+
       const payload = {
         tanggal,
         unit_starlink: unitStarlink,
@@ -107,6 +126,17 @@ const StarlinkUsageCRUD = () => {
       }
 
       if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 409) {
+          Swal.fire({
+            title: 'Peringatan!',
+            text: errorData.message || `Data untuk unit "${unitStarlink}" pada tanggal ${tanggal} sudah ada. Harap pilih tanggal atau unit yang berbeda.`,
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#f59e0b',
+          });
+          return;
+        }
         throw new Error('Failed to save data');
       }
 

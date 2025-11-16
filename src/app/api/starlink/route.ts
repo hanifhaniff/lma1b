@@ -71,10 +71,23 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.tanggal || !body.unit_starlink || body.total_pemakaian === undefined) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Check for duplicate unit on the same date
+    const existingRecords = await getStarlinkUsage({
+      startDate: body.tanggal,
+      endDate: body.tanggal,
+      unit: body.unit_starlink
+    });
+
+    if (existingRecords.length > 0) {
+      return Response.json({
+        error: `Duplicate entry: Unit "${body.unit_starlink}" already exists for date ${body.tanggal}`
+      }, { status: 409 });
     }
 
     const newUsage = await insertStarlinkUsage({
