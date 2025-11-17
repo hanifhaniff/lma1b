@@ -7,7 +7,6 @@ import StarlinkUsageClient from './StarlinkUsageClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, Network, Plus, Activity, Hash, BarChart3, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
 interface StarlinkUsagePageClientProps {
