@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -45,6 +45,24 @@ const formatDate = (dateString: string | null) => {
   });
 };
 
+// Group usage data by date
+const groupByDate = (usages: StarlinkUsage[]) => {
+  const grouped = new Map<string, StarlinkUsage[]>();
+
+  usages.forEach(usage => {
+    const dateKey = usage.tanggal; // Use the date string as the key
+    if (!grouped.has(dateKey)) {
+      grouped.set(dateKey, []);
+    }
+    grouped.get(dateKey)!.push(usage);
+  });
+
+  // Sort groups by date (newest first)
+  return new Map([...grouped.entries()].sort((a, b) =>
+    new Date(b[0]).getTime() - new Date(a[0]).getTime()
+  ));
+};
+
 interface StarlinkUsageClientProps {
   initialUsages: StarlinkUsage[];
   loading: boolean;
@@ -56,6 +74,7 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
   const [currentUsage, setCurrentUsage] = useState<StarlinkUsage | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsages, setFilteredUsages] = useState<StarlinkUsage[]>(initialUsages);
+  const [groupedUsages, setGroupedUsages] = useState<Map<string, StarlinkUsage[]>>(groupByDate(initialUsages));
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,6 +103,7 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
     }
 
     setFilteredUsages(updatedUsages);
+    setGroupedUsages(groupByDate(updatedUsages)); // Update grouped data as well
   };
 
   // Handle search term changes
@@ -101,11 +121,29 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
     }
   };
 
-  // Calculate pagination values
+  // Calculate pagination values for grouped data
+  const flattenedUsages = Array.from(groupedUsages.values()).flat();
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsages = filteredUsages.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredUsages.length / itemsPerPage);
+
+  // Determine which groups and items should be shown on current page
+  const getPaginatedGroups = () => {
+    const itemsToShow = flattenedUsages.slice(indexOfFirstItem, indexOfLastItem);
+    const visibleGrouped = new Map<string, StarlinkUsage[]>();
+
+    itemsToShow.forEach(usage => {
+      const dateKey = usage.tanggal;
+      if (!visibleGrouped.has(dateKey)) {
+        visibleGrouped.set(dateKey, []);
+      }
+      visibleGrouped.get(dateKey)!.push(usage);
+    });
+
+    return visibleGrouped;
+  };
+
+  const paginatedGroups = getPaginatedGroups();
+  const totalPages = Math.ceil(flattenedUsages.length / itemsPerPage);
 
   // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -241,38 +279,56 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentUsages.length > 0 ? (
-                      currentUsages.map((usage, index) => {
-                        const serialNumber = indexOfFirstItem + index + 1;
+                    {flattenedUsages.length > 0 ? (
+                      // Group by date and render accordingly for current page
+                      Array.from(paginatedGroups.entries()).map(([dateKey, usagesForDate]) => {
+                        // Calculate starting index for serial numbers within this group
+                        const groupStartIndex = flattenedUsages.findIndex(usage => usage.tanggal === dateKey);
+
                         return (
-                          <TableRow key={usage.id}>
-                            <TableCell className="font-medium">{serialNumber}</TableCell>
-                            <TableCell>{formatDate(usage.tanggal)}</TableCell>
-                            <TableCell>{usage.unit_starlink}</TableCell>
-                            <TableCell>{usage.total_pemakaian}</TableCell>
-                            <TableCell className="text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleEdit(usage)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600"
-                                    onClick={() => handleDelete(usage)}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
+                          <React.Fragment key={dateKey}>
+                            <TableRow className="bg-muted/30">
+                              <TableCell colSpan={5} className="font-bold py-3">
+                                {formatDate(dateKey)}
+                              </TableCell>
+                            </TableRow>
+                            {usagesForDate.map((usage) => {
+                              // Calculate the actual index for the serial number
+                              const actualIndex = flattenedUsages.findIndex(u => u.id === usage.id);
+                              const serialNumber = actualIndex + 1;
+
+                              return (
+                                <TableRow key={usage.id}>
+                                  <TableCell className="font-medium">{serialNumber}</TableCell>
+                                  <TableCell>{formatDate(usage.tanggal)}</TableCell>
+                                  <TableCell>{usage.unit_starlink}</TableCell>
+                                  <TableCell>{usage.total_pemakaian}</TableCell>
+                                  <TableCell className="text-right">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEdit(usage)}>
+                                          <Edit className="h-4 w-4 mr-2" />
+                                          Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          className="text-red-600 focus:text-red-600"
+                                          onClick={() => handleDelete(usage)}
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Delete
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </React.Fragment>
                         );
                       })
                     ) : (
@@ -289,8 +345,8 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
               {/* Pagination controls */}
               <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
                 <div className="text-sm text-muted-foreground">
-                  Showing {Math.min(indexOfFirstItem + 1, filteredUsages.length)} to{' '}
-                  {Math.min(indexOfLastItem, filteredUsages.length)} of {filteredUsages.length} records
+                  Showing {Math.min(indexOfFirstItem + 1, flattenedUsages.length)} to{' '}
+                  {Math.min(indexOfLastItem, flattenedUsages.length)} of {flattenedUsages.length} records
                 </div>
                 
                 <div className="flex items-center gap-2">
