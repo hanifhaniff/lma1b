@@ -52,15 +52,32 @@ export async function GET(request: NextRequest) {
       const units = await getStarlinkUnits();
       return Response.json(units);
     } else {
-      // Return raw data with optional filters
-      const filters = {
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-        unit: unit || undefined,
-      };
+      // Check if it's a search request
+      const search = searchParams.get('search');
+      if (search) {
+        // For search functionality, filter data based on search term
+        // This searches across all fields (tanggal, unit_starlink, total_pemakaian)
+        const allData = await getStarlinkUsage({});
+        const searchTerm = search.toLowerCase();
 
-      const data = await getStarlinkUsage(filters);
-      return Response.json(data);
+        const filteredData = allData.filter(item =>
+          item.tanggal.toLowerCase().includes(searchTerm) ||
+          item.unit_starlink.toLowerCase().includes(searchTerm) ||
+          item.total_pemakaian.toString().includes(searchTerm)
+        );
+
+        return Response.json(filteredData);
+      } else {
+        // Return raw data with optional filters
+        const filters = {
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          unit: unit || undefined,
+        };
+
+        const data = await getStarlinkUsage(filters);
+        return Response.json(data);
+      }
     }
   } catch (error) {
     console.error('Error fetching Starlink usage data:', error);

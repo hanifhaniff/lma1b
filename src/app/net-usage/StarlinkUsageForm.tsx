@@ -15,20 +15,27 @@ interface StarlinkUsageFormProps {
 }
 
 export default function StarlinkUsageForm({ usage, onSubmit, onCancel }: StarlinkUsageFormProps) {
+  const [inputValues, setInputValues] = useState({
+    total_pemakaian: '',
+  });
   const [formData, setFormData] = useState<NewStarlinkUsage>({
-    tanggal: usage?.tanggal || '',
-    unit_starlink: usage?.unit_starlink || '',
-    total_pemakaian: usage?.total_pemakaian || 0,
+    tanggal: '',
+    unit_starlink: '',
+    total_pemakaian: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (usage) {
+      const totalPemakaianValue = typeof usage.total_pemakaian === 'number' ? usage.total_pemakaian : 0;
       setFormData({
         tanggal: usage.tanggal || '',
         unit_starlink: usage.unit_starlink || '',
-        total_pemakaian: usage.total_pemakaian || 0,
+        total_pemakaian: totalPemakaianValue,
+      });
+      setInputValues({
+        total_pemakaian: totalPemakaianValue.toString(),
       });
     } else {
       setFormData({
@@ -36,15 +43,45 @@ export default function StarlinkUsageForm({ usage, onSubmit, onCancel }: Starlin
         unit_starlink: '',
         total_pemakaian: 0,
       });
+      setInputValues({
+        total_pemakaian: '0',
+      });
     }
   }, [usage]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'total_pemakaian' ? Number(value) : value,
-    });
+
+    if (name === 'total_pemakaian') {
+      // Update the input value state to maintain the text representation
+      setInputValues({
+        ...inputValues,
+        [name]: value,
+      });
+
+      // Parse the value but handle empty or just decimal point specially
+      let parsedValue = 0;
+      if (value === '' || value === '.') {
+        parsedValue = 0;
+      } else if (value.endsWith('.')) {
+        // If value ends with a dot, use what we have so far without the dot for the form data
+        // but keep the string representation for display
+        const withoutTrailingDot = value.slice(0, -1);
+        parsedValue = withoutTrailingDot === '' ? 0 : parseFloat(withoutTrailingDot) || 0;
+      } else {
+        parsedValue = parseFloat(value) || 0;
+      }
+
+      setFormData({
+        ...formData,
+        [name]: parsedValue,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const validateForm = (): boolean => {
@@ -156,9 +193,8 @@ export default function StarlinkUsageForm({ usage, onSubmit, onCancel }: Starlin
               <Input
                 id="total_pemakaian"
                 name="total_pemakaian"
-                type="number"
-                step="any"
-                value={formData.total_pemakaian}
+                type="text"
+                value={inputValues.total_pemakaian}
                 onChange={handleChange}
                 placeholder="Enter total pemakaian"
               />

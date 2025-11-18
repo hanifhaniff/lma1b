@@ -90,7 +90,7 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
   const fetchUsageData = async (term: string) => {
     const trimmedTerm = term.trim();
     const searchQuery = trimmedTerm ? `?search=${encodeURIComponent(trimmedTerm)}` : '';
-    const response = await fetch(`/api/starlink-usage${searchQuery}`);
+    const response = await fetch(`/api/starlink${searchQuery}`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch starlink usage data');
