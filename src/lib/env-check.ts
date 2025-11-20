@@ -8,10 +8,6 @@ export function checkEnvironmentVariables() {
       url: process.env.NEXT_PUBLIC_SUPABASE_URL,
       anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     },
-    ai: {
-      openai: process.env.OPENAI_API_KEY,
-      anthropic: process.env.ANTHROPIC_API_KEY,
-    },
   };
 
   const status = {
@@ -21,11 +17,10 @@ export function checkEnvironmentVariables() {
     supabase: !!(
       requiredEnvVars.supabase.url && requiredEnvVars.supabase.anonKey
     ),
-    ai: !!(requiredEnvVars.ai.openai || requiredEnvVars.ai.anthropic),
     allConfigured: false,
   };
 
-  status.allConfigured = status.clerk && status.supabase && status.ai;
+  status.allConfigured = status.clerk && status.supabase;
 
   return status;
 }
@@ -51,16 +46,6 @@ export function getSetupInstructions() {
         "Copy NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local",
       ],
       envVars: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"],
-    },
-    {
-      service: "OpenAI",
-      description: "AI language model for chat functionality",
-      steps: [
-        "Go to https://platform.openai.com/",
-        "Create an API key",
-        "Copy OPENAI_API_KEY to .env.local",
-      ],
-      envVars: ["OPENAI_API_KEY"],
     },
   ];
 }
