@@ -1,6 +1,8 @@
 import { ShopDrawing } from "@/lib/types/shop-drawing";
 import ShopDrawingClient from "./client";
 
+export const dynamic = 'force-dynamic';
+
 async function getShopDrawings(): Promise<ShopDrawing[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

@@ -175,58 +175,8 @@ export default function ShopDrawingForm({
     }));
   }, [formData.contract_code, formData.document_type, formData.discipline, formData.location, formData.work_system, formData.serial_number, formData.revision_number]);
 
-  // Debounced function to regenerate serial number when key components change
-  const regenerateSerialNumber = useCallback(async () => {
-    if (!shopDrawing && formData.contract_code && formData.document_type && formData.discipline && formData.location && formData.work_system) {
-      const nextSerial = await getNextSerialNumber();
-      setFormData(prev => ({
-        ...prev,
-        serial_number: nextSerial,
-        doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${nextSerial}-${prev.revision_number || 0}`
-      }));
-    }
-  }, [formData.contract_code, formData.document_type, formData.discipline, formData.location, formData.work_system, shopDrawing]);
-
-  // Effect to auto-generate serial number when document components change
-  useEffect(() => {
-    if (shopDrawing) {
-      // When editing existing records, don't auto-generate but maintain the document number structure
-      setFormData(prev => ({
-        ...prev,
-        doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${prev.serial_number || ''}-${prev.revision_number || 0}`
-      }));
-    } else if (formData.contract_code && formData.document_type && formData.discipline && formData.location && formData.work_system) {
-      // For new entries, auto-generate serial number when any key component changes
-      if (!formData.serial_number) {
-        // First time generating serial number
-        const timeoutId = setTimeout(regenerateSerialNumber, 800);
-        return () => clearTimeout(timeoutId);
-      } else {
-        // Check if any key component changed from previous values
-        const shouldRegenerate = true; // Always regenerate when components change for new entries
-        if (shouldRegenerate) {
-          const timeoutId = setTimeout(regenerateSerialNumber, 800);
-          return () => clearTimeout(timeoutId);
-        } else {
-          // Just update the doc_number to reflect any component changes
-          setFormData(prev => ({
-            ...prev,
-            doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${prev.serial_number}-${prev.revision_number || 0}`
-          }));
-        }
-      }
-    } else {
-      // When components are incomplete for new entries, update doc_number with empty serial
-      setFormData(prev => ({
-        ...prev,
-        doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${prev.serial_number || ''}-${prev.revision_number || 0}`,
-        serial_number: '' // Reset serial when components are incomplete
-      }));
-    }
-  }, [formData.contract_code, formData.document_type, formData.discipline, formData.location, formData.work_system, formData.serial_number, formData.revision_number, shopDrawing, regenerateSerialNumber]);
-
   // Function to get the next available serial number based on document components
-  const getNextSerialNumber = async () => {
+  const getNextSerialNumber = useCallback(async () => {
     if (!formData.contract_code || !formData.document_type || !formData.discipline || !formData.location || !formData.work_system) {
       return '001';
     }
@@ -290,7 +240,57 @@ export default function ShopDrawingForm({
     }
 
     return '001'; // Default to '001' if no existing drawings found
-  };
+  }, [formData.contract_code, formData.document_type, formData.discipline, formData.location, formData.work_system]);
+
+  // Debounced function to regenerate serial number when key components change
+  const regenerateSerialNumber = useCallback(async () => {
+    if (!shopDrawing && formData.contract_code && formData.document_type && formData.discipline && formData.location && formData.work_system) {
+      const nextSerial = await getNextSerialNumber();
+      setFormData(prev => ({
+        ...prev,
+        serial_number: nextSerial,
+        doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${nextSerial}-${prev.revision_number || 0}`
+      }));
+    }
+  }, [formData.contract_code, formData.document_type, formData.discipline, formData.location, formData.work_system, shopDrawing, getNextSerialNumber]);
+
+  // Effect to auto-generate serial number when document components change
+  useEffect(() => {
+    if (shopDrawing) {
+      // When editing existing records, don't auto-generate but maintain the document number structure
+      setFormData(prev => ({
+        ...prev,
+        doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${prev.serial_number || ''}-${prev.revision_number || 0}`
+      }));
+    } else if (formData.contract_code && formData.document_type && formData.discipline && formData.location && formData.work_system) {
+      // For new entries, auto-generate serial number when any key component changes
+      if (!formData.serial_number) {
+        // First time generating serial number
+        const timeoutId = setTimeout(regenerateSerialNumber, 800);
+        return () => clearTimeout(timeoutId);
+      } else {
+        // Check if any key component changed from previous values
+        const shouldRegenerate = true; // Always regenerate when components change for new entries
+        if (shouldRegenerate) {
+          const timeoutId = setTimeout(regenerateSerialNumber, 800);
+          return () => clearTimeout(timeoutId);
+        } else {
+          // Just update the doc_number to reflect any component changes
+          setFormData(prev => ({
+            ...prev,
+            doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${prev.serial_number}-${prev.revision_number || 0}`
+          }));
+        }
+      }
+    } else {
+      // When components are incomplete for new entries, update doc_number with empty serial
+      setFormData(prev => ({
+        ...prev,
+        doc_number: `${prev.contract_code || ''}-${prev.document_type || ''}-${prev.discipline || ''}-${prev.location || ''}.${prev.work_system || ''}-${prev.serial_number || ''}-${prev.revision_number || 0}`,
+        serial_number: '' // Reset serial when components are incomplete
+      }));
+    }
+  }, [formData.contract_code, formData.document_type, formData.discipline, formData.location, formData.work_system, formData.serial_number, formData.revision_number, shopDrawing, regenerateSerialNumber]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
