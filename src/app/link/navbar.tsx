@@ -162,7 +162,7 @@ export function LinkNavbar() {
         {/* Right side actions */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <UserButton afterSignOutUrl="/" />
+          <UserButton afterSignOutUrl="/sign-in" />
 
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>
