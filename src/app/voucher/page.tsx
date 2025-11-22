@@ -105,6 +105,7 @@ export default function RuijiePage() {
   const [filteredVouchers, setFilteredVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -191,6 +192,7 @@ export default function RuijiePage() {
   // Handle search
   useEffect(() => {
     const applyFilters = async () => {
+      setSearchLoading(true);
       try {
         // Build query parameters
         const params = new URLSearchParams();
@@ -225,6 +227,8 @@ export default function RuijiePage() {
 
         setFilteredVouchers(filtered);
         setCurrentPage(1); // Reset to first page when filtering
+      } finally {
+        setSearchLoading(false);
       }
     };
 
@@ -624,11 +628,14 @@ export default function RuijiePage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search..."
+                    placeholder="Search by first name or voucher code..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 pr-10"
                   />
+                  {searchLoading && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-primary" />
+                  )}
                 </div>
               </div>
             </div>
@@ -701,15 +708,38 @@ export default function RuijiePage() {
                 </Table>
               </div>
 
-              {filteredVouchers.length === 0 && (
+              {searchLoading && currentVouchers.length === 0 && (
                 <div className="text-center py-12">
-                  <BarChart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-1">No Vouchers Found</h3>
+                  <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary mb-4" />
+                  <h3 className="text-lg font-medium mb-1">Searching...</h3>
                   <p className="text-muted-foreground">
-                    {vouchers.length === 0
-                      ? 'No vouchers found in the system. Create your first voucher!'
-                      : 'No vouchers match your search criteria.'}
+                    Please wait while we search for vouchers.
                   </p>
+                </div>
+              )}
+
+              {!searchLoading && filteredVouchers.length === 0 && (
+                <div className="text-center py-12">
+                  <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-1">
+                    {searchQuery ? 'No Results Found' : 'No Vouchers Found'}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {searchQuery
+                      ? `No vouchers match "${searchQuery}". Try a different search term.`
+                      : vouchers.length === 0
+                      ? 'No vouchers found in the system. Create your first voucher!'
+                      : 'No vouchers available.'}
+                  </p>
+                  {searchQuery && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSearchQuery('')}
+                      className="mt-4"
+                    >
+                      Clear Search
+                    </Button>
+                  )}
                 </div>
               )}
 
