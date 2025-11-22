@@ -697,7 +697,7 @@ export default function RuijiePage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
-                            {voucher.firstName}
+                            {voucher.firstName || <span className="text-muted-foreground italic">Empty</span>}
                           </div>
                         </TableCell>
                         <TableCell className="max-w-[120px] sm:max-w-xs" title={voucher.comment}>
