@@ -106,8 +106,7 @@ export default function RuijiePage() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchFirstName, setSearchFirstName] = useState('');
-  const [searchVoucherCode, setSearchVoucherCode] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -195,11 +194,9 @@ export default function RuijiePage() {
       try {
         // Build query parameters
         const params = new URLSearchParams();
-        if (searchFirstName.trim()) {
-          params.append('searchFirstName', searchFirstName.trim());
-        }
-        if (searchVoucherCode.trim()) {
-          params.append('searchVoucherCode', searchVoucherCode.trim());
+        if (searchQuery.trim()) {
+          params.append('searchFirstName', searchQuery.trim());
+          params.append('searchVoucherCode', searchQuery.trim());
         }
         params.append('listId', listId);
 
@@ -218,15 +215,11 @@ export default function RuijiePage() {
         // If API filter fails, fallback to client-side filtering
         let filtered = vouchers;
 
-        if (searchFirstName.trim()) {
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
           filtered = filtered.filter(voucher =>
-            voucher.firstName.toLowerCase().includes(searchFirstName.toLowerCase())
-          );
-        }
-
-        if (searchVoucherCode.trim()) {
-          filtered = filtered.filter(voucher =>
-            voucher.voucherCode.toLowerCase().includes(searchVoucherCode.toLowerCase())
+            voucher.firstName.toLowerCase().includes(query) ||
+            voucher.voucherCode.toLowerCase().includes(query)
           );
         }
 
@@ -241,7 +234,7 @@ export default function RuijiePage() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchFirstName, searchVoucherCode, vouchers, listId]);
+  }, [searchQuery, vouchers, listId]);
 
   // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -628,25 +621,14 @@ export default function RuijiePage() {
             <div className="px-6 pb-4">
               <div className="bg-muted/50 rounded-lg p-4">
                 <h3 className="text-sm font-medium mb-3">Search Vouchers</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by first name..."
-                      value={searchFirstName}
-                      onChange={(e) => setSearchFirstName(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by voucher code..."
-                      value={searchVoucherCode}
-                      onChange={(e) => setSearchVoucherCode(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
               </div>
             </div>

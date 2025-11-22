@@ -150,16 +150,27 @@ export async function GET(request: NextRequest) {
     // Apply search filters if provided
     let filteredVouchers = transformedVouchers;
     
-    if (searchFirstName) {
+    // If both search parameters are provided with the same value (combined search)
+    // use OR logic to match either field
+    if (searchFirstName && searchVoucherCode && searchFirstName === searchVoucherCode) {
+      const searchQuery = searchFirstName.toLowerCase();
       filteredVouchers = filteredVouchers.filter(voucher =>
-        voucher.firstName.toLowerCase().includes(searchFirstName.toLowerCase())
+        voucher.firstName.toLowerCase().includes(searchQuery) ||
+        voucher.voucherCode.toLowerCase().includes(searchQuery)
       );
-    }
-    
-    if (searchVoucherCode) {
-      filteredVouchers = filteredVouchers.filter(voucher =>
-        voucher.voucherCode.toLowerCase().includes(searchVoucherCode.toLowerCase())
-      );
+    } else {
+      // Otherwise, apply filters separately (AND logic)
+      if (searchFirstName) {
+        filteredVouchers = filteredVouchers.filter(voucher =>
+          voucher.firstName.toLowerCase().includes(searchFirstName.toLowerCase())
+        );
+      }
+      
+      if (searchVoucherCode) {
+        filteredVouchers = filteredVouchers.filter(voucher =>
+          voucher.voucherCode.toLowerCase().includes(searchVoucherCode.toLowerCase())
+        );
+      }
     }
 
     // Return the filtered vouchers
