@@ -60,23 +60,23 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     href: "/it-asset",
     icon: Package,
   },
-  {
-    title: "Files",
-    href: "/file",
-    icon: File,
-    hasDropdown: true,
-    dropdownItems: fileDropdownItems,
-  },
+  // {
+  //   title: "Files",
+  //   href: "/file",
+  //   icon: File,
+  //   hasDropdown: true,
+  //   dropdownItems: fileDropdownItems,
+  // },
   {
     title: "Voucher",
     href: "/voucher",
     icon: Ticket,
   },
-  {
-    title: "Radio",
-    href: "/radio",
-    icon: Radio,
-  },
+  // {
+  //   title: "Radio",
+  //   href: "/radio",
+  //   icon: Radio,
+  // },
   {
     title: "Starlink",
     href: "/net-usage",
