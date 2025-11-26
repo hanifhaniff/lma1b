@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (searchTerm) {
       const searchPattern = `%${searchTerm}%`;
       query = query.or(
-        `nama.ilike.${searchPattern},pic.ilike.${searchPattern},serial_number.ilike.${searchPattern},kategori.ilike.${searchPattern},nomor_asset.ilike.${searchPattern},nomor_bast.ilike.${searchPattern}`
+        `nama.ilike.${searchPattern},pic.ilike.${searchPattern},serial_number.ilike.${searchPattern},kategori.ilike.${searchPattern},nomor_asset.ilike.${searchPattern},nomor_bast.ilike.${searchPattern},keterangan.ilike.${searchPattern}`
       );
     }
     

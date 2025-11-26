@@ -64,6 +64,7 @@ export function ITAssetForm({ asset, onSuccess, onCancel }: ITAssetFormProps) {
     kategori: asset?.kategori || "",
     nomor_asset: asset?.nomor_asset || "",
     nomor_bast: asset?.nomor_bast || "",
+    keterangan: asset?.keterangan || "",
   });
 
   // Initialize asset number suffix from existing asset
@@ -353,6 +354,20 @@ export function ITAssetForm({ asset, onSuccess, onCancel }: ITAssetFormProps) {
             onChange={(e) => handleChange("nomor_bast", e.target.value)}
             placeholder="Masukkan nomor BAST (opsional)"
             disabled={loading}
+          />
+        </div>
+
+        {/* Keterangan */}
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="keterangan">Keterangan</Label>
+          <textarea
+            id="keterangan"
+            value={formData.keterangan}
+            onChange={(e) => handleChange("keterangan", e.target.value)}
+            placeholder="Masukkan keterangan atau catatan tambahan (opsional)"
+            disabled={loading}
+            rows={3}
+            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
           />
         </div>
       </div>

@@ -86,6 +86,20 @@ export const createColumns = (
     },
   },
   {
+    accessorKey: "keterangan",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Keterangan" />
+    ),
+    cell: ({ row }) => {
+      const keterangan = row.getValue("keterangan") as string | null;
+      return (
+        <div className="max-w-[250px] truncate text-sm text-muted-foreground">
+          {keterangan || "-"}
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
       const asset = row.original;

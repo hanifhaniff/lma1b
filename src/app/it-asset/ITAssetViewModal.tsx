@@ -82,6 +82,12 @@ export function ITAssetViewModal({
               <p className="text-sm font-medium text-muted-foreground">Nomor BAST</p>
               <p className="text-base">{asset.nomor_bast || "-"}</p>
             </div>
+
+            {/* Keterangan */}
+            <div className="space-y-2 md:col-span-2">
+              <p className="text-sm font-medium text-muted-foreground">Keterangan</p>
+              <p className="text-base whitespace-pre-wrap">{asset.keterangan || "-"}</p>
+            </div>
           </div>
 
           <Separator />
