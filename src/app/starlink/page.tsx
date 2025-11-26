@@ -241,7 +241,7 @@ const StarlinkUsagePage = () => {
     return (
       <div className="container mx-auto py-10 px-4">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Pemakaian Starlink</h1>
+          <h1 className="text-3xl font-bold mb-4">Monitoring Pemakaian Starlink</h1>
           <p className="text-red-500">{error}</p>
         </div>
       </div>
