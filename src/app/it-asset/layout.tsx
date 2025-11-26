@@ -1,6 +1,6 @@
-import { DashboardNavbar } from "../dashboard/navbar";
+import { DashboardNavbar } from "@/app/dashboard/navbar";
 
-export default function LaptopsLayout({
+export default function ITAssetLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -27,26 +27,19 @@ export function ConfirmDialog({
   title,
   description,
   onConfirm,
-  confirmText = "Continue",
+  confirmText = "Confirm",
   cancelText = "Cancel",
 }: ConfirmDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            ⚠️ {title}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {description}
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={onConfirm}
-            className="bg-destructive hover:bg-destructive/90"
-          >
+          <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
             {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>

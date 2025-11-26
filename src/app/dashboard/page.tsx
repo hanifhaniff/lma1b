@@ -32,17 +32,18 @@ import {
   Activity,
   FileText,
   Radio as RadioIcon,
-  Ticket
+  Ticket,
+  Package
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 // Mock data for asset charts
 const assetData = [
-  { name: 'Laptops', count: 42, color: '#3b82f6' },
-  { name: 'Desktops', count: 18, color: '#10b981' },
-  { name: 'Monitors', count: 35, color: '#8b5cf6' },
-  { name: 'Mobiles', count: 28, color: '#f59e0b' },
-  { name: 'Printers', count: 12, color: '#ef4444' },
+  { name: 'IT Assets', count: 89, color: '#3b82f6' },
+  { name: 'Laptops', count: 42, color: '#10b981' },
+  { name: 'Radios', count: 24, color: '#8b5cf6' },
+  { name: 'Vouchers', count: 18, color: '#f59e0b' },
+  { name: 'Documents', count: 56, color: '#ef4444' },
 ];
 
 const monthlyData = [
@@ -70,10 +71,11 @@ const quickStats = [
 
 // Asset Summary Cards
 const assetSummary = [
-  { title: "Laptops", value: "42", change: "+2", icon: Laptop, color: "bg-blue-500" },
-  { title: "Radios", value: "24", change: "+5", icon: RadioIcon, color: "bg-green-500" },
-  { title: "Vouchers", value: "18", change: "+3", icon: Ticket, color: "bg-purple-500" },
-  { title: "Documents", value: "56", change: "+7", icon: FileText, color: "bg-orange-500" },
+  { title: "IT Assets", value: "89", change: "+8", icon: Package, color: "bg-blue-500", href: "/it-asset" },
+  { title: "Laptops", value: "42", change: "+2", icon: Laptop, color: "bg-green-500", href: "/laptops" },
+  { title: "Radios", value: "24", change: "+5", icon: RadioIcon, color: "bg-purple-500", href: "/radio" },
+  { title: "Vouchers", value: "18", change: "+3", icon: Ticket, color: "bg-orange-500", href: "/voucher" },
+  { title: "Dokumentasi", value: "56", change: "+7", icon: FileText, color: "bg-red-500", href: "/documentation" },
 ];
 
 export default function DashboardPage() {
@@ -174,7 +176,11 @@ export default function DashboardPage() {
             {assetSummary.map((summary, index) => {
               const Icon = summary.icon;
               return (
-                <Card key={index} className="hover:shadow-md transition-shadow">
+                <Card 
+                  key={index} 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => window.location.href = summary.href}
+                >
                   <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                       <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -362,17 +368,17 @@ export default function DashboardPage() {
                   <h4 className="font-medium mb-3">Recent Activity</h4>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                       <div>
-                        <p className="text-sm">New laptop inventory added</p>
-                        <p className="text-xs text-muted-foreground">2 hours ago</p>
+                        <p className="text-sm">New IT asset added to inventory</p>
+                        <p className="text-xs text-muted-foreground">1 hour ago</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                       <div>
-                        <p className="text-sm">Voucher created for project</p>
-                        <p className="text-xs text-muted-foreground">5 hours ago</p>
+                        <p className="text-sm">Laptop inventory updated</p>
+                        <p className="text-xs text-muted-foreground">3 hours ago</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">

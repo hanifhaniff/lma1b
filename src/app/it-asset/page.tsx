@@ -4,39 +4,41 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "./data-table";
-import { Laptop } from "./laptop-service";
-import { deleteLaptop, getLaptops } from "./laptop-service";
+import { ITAsset } from "./types";
+import { deleteITAsset, getITAssets } from "./it-asset-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Laptop as LaptopIcon, Plus, Search, Filter, MoreVertical } from "lucide-react";
-import { LaptopDialog } from "./laptop-dialog";
+import { RefreshCw, Package, Plus, Laptop, HardDrive, Printer, FileText } from "lucide-react";
+import { ITAssetDialog } from "./it-asset-dialog";
 import { ConfirmDialog } from "./confirm-dialog";
+import { ITAssetViewModal } from "./ITAssetViewModal";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { createColumns } from "./columns";
 
-export default function LaptopsPage() {
+export default function ITAssetPage() {
   const { user, isLoaded, isSignedIn } = useUser();
-  const [laptops, setLaptops] = useState<Laptop[]>([]);
+  const [assets, setAssets] = useState<ITAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // State for dialogs
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingLaptop, setEditingLaptop] = useState<Laptop | null>(null);
+  const [editingAsset, setEditingAsset] = useState<ITAsset | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [laptopToDelete, setLaptopToDelete] = useState<Laptop | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<ITAsset | null>(null);
+  const [viewingAsset, setViewingAsset] = useState<ITAsset | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Load data
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const laptopsData = await getLaptops();
-
-      // The data is already in the correct format from the service
-      setLaptops(laptopsData);
+      const assetsData = await getITAssets();
+      setAssets(assetsData);
     } catch (error: unknown) {
-      console.error("Error fetching laptops:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to fetch laptops. Please check that the database table exists.";
+      console.error("Error fetching IT assets:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch IT assets. Please check that the database table exists.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -44,34 +46,33 @@ export default function LaptopsPage() {
   };
 
   // Action handlers
-  const handleEdit = (laptop: Laptop) => {
-    setEditingLaptop(laptop);
+  const handleEdit = (asset: ITAsset) => {
+    setEditingAsset(asset);
   };
 
-  const handleDelete = (laptop: Laptop) => {
-    setLaptopToDelete(laptop);
+  const handleDelete = (asset: ITAsset) => {
+    setAssetToDelete(asset);
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (!laptopToDelete) return;
-
-    try {
-      await deleteLaptop(laptopToDelete.id);
-      toast.success("Laptop deleted successfully!");
-      setIsDeleteDialogOpen(false);
-      setLaptopToDelete(null);
-      fetchData(); // Refresh the data after successful deletion
-    } catch (error) {
-      console.error("Error deleting laptop:", error);
-      toast.error("Failed to delete laptop");
-    }
+  const handleView = (asset: ITAsset) => {
+    setViewingAsset(asset);
+    setIsViewModalOpen(true);
   };
 
-  // Action handler for viewing laptops
-  const handleView = (laptop: Laptop) => {
-    // This will be handled by the DataTable component's internal state
-    // We don't need to do anything here as the modal is managed within the DataTable
+  const confirmDelete = async () => {
+    if (!assetToDelete) return;
+
+    try {
+      await deleteITAsset(assetToDelete.id);
+      toast.success("IT asset deleted successfully!");
+      setIsDeleteDialogOpen(false);
+      setAssetToDelete(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting IT asset:", error);
+      toast.error("Failed to delete IT asset");
+    }
   };
 
   useEffect(() => {
@@ -79,6 +80,15 @@ export default function LaptopsPage() {
       fetchData();
     }
   }, [isLoaded, isSignedIn]);
+
+  // Stats calculations
+  const totalAssets = assets.length;
+  const laptopCount = assets.filter(a => a.kategori === "Laptop").length;
+  const storageCount = assets.filter(a => a.kategori === "Storage").length;
+  const printerCount = assets.filter(a => a.kategori === "Printer").length;
+  const dokumentasiCount = assets.filter(a => a.kategori === "Dokumentasi").length;
+
+  const columns = createColumns(handleEdit, handleDelete, handleView);
 
   if (!isLoaded) {
     return (
@@ -96,12 +106,12 @@ export default function LaptopsPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Card className="w-full max-w-md mx-4">
           <CardHeader className="text-center">
-            <LaptopIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <Package className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <CardTitle className="text-xl">Access Denied</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Please sign in to access the laptop management system.
+              Please sign in to access the IT asset management system.
             </p>
             <Button
               onClick={() => window.location.href = '/sign-in'}
@@ -117,13 +127,12 @@ export default function LaptopsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto py-10">
-          <Card>
+      <div className="max-w-7xl mx-auto py-10">
+        <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <LaptopIcon className="h-5 w-5" />
-                Laptop Management
+                <Package className="h-5 w-5" />
+                IT Asset Management
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -145,35 +154,33 @@ export default function LaptopsPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Laptop Management</h1>
+              <h1 className="text-3xl font-bold tracking-tight">IT Asset Management</h1>
               <p className="text-muted-foreground">
-                Manage your laptop inventory, track users, and monitor BAST numbers.
+                Manage your IT asset inventory with detailed tracking.
               </p>
             </div>
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <Card className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Laptops</p>
-                    <p className="text-2xl font-bold mt-1">{laptops.length}</p>
+                    <p className="text-sm text-muted-foreground">Total Assets</p>
+                    <p className="text-2xl font-bold mt-1">{totalAssets}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-blue-500/10">
-                    <LaptopIcon className="h-6 w-6 text-blue-500" />
+                    <Package className="h-6 w-6 text-blue-500" />
                   </div>
                 </div>
               </CardContent>
@@ -183,13 +190,11 @@ export default function LaptopsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Assigned Laptops</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {laptops.filter(laptop => laptop.assigned_user).length}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Laptops</p>
+                    <p className="text-2xl font-bold mt-1">{laptopCount}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-green-500/10">
-                    <LaptopIcon className="h-6 w-6 text-green-500" />
+                    <Laptop className="h-6 w-6 text-green-500" />
                   </div>
                 </div>
               </CardContent>
@@ -199,13 +204,39 @@ export default function LaptopsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Available Laptops</p>
-                    <p className="text-2xl font-bold mt-1">
-                      {laptops.filter(laptop => !laptop.assigned_user).length}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Storage</p>
+                    <p className="text-2xl font-bold mt-1">{storageCount}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-yellow-500/10">
-                    <LaptopIcon className="h-6 w-6 text-yellow-500" />
+                    <HardDrive className="h-6 w-6 text-yellow-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Printers</p>
+                    <p className="text-2xl font-bold mt-1">{printerCount}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-purple-500/10">
+                    <Printer className="h-6 w-6 text-purple-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Dokumentasi</p>
+                    <p className="text-2xl font-bold mt-1">{dokumentasiCount}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-red-500/10">
+                    <FileText className="h-6 w-6 text-red-500" />
                   </div>
                 </div>
               </CardContent>
@@ -215,13 +246,13 @@ export default function LaptopsPage() {
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <CardTitle className="flex items-center gap-2">
-                <LaptopIcon className="h-5 w-5 text-blue-500" />
-                Laptop Inventory
-                <Badge variant="secondary" className="ml-2">{laptops.length}</Badge>
+                <Package className="h-5 w-5 text-blue-500" />
+                IT Asset Inventory
+                <Badge variant="secondary" className="ml-2">{totalAssets}</Badge>
               </CardTitle>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" /> Add Laptop
+                  <Plus className="mr-2 h-4 w-4" /> Add IT Asset
                 </Button>
                 <Button
                   onClick={fetchData}
@@ -245,42 +276,46 @@ export default function LaptopsPage() {
             </CardHeader>
             <CardContent>
               <DataTable
-                data={laptops}
-                onRefresh={fetchData}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+                columns={columns}
+                data={assets}
                 loading={loading}
               />
             </CardContent>
           </Card>
 
-          {/* Add/Edit Laptop Dialog */}
-          <LaptopDialog
-            open={isAddDialogOpen || !!editingLaptop}
+          {/* Add/Edit IT Asset Dialog */}
+          <ITAssetDialog
+            open={isAddDialogOpen || !!editingAsset}
             onOpenChange={(open) => {
               if (!open) {
                 setIsAddDialogOpen(false);
-                setEditingLaptop(null);
+                setEditingAsset(null);
               }
             }}
-            laptop={editingLaptop || undefined}
+            asset={editingAsset || undefined}
             onSuccess={() => {
-              fetchData(); // Refresh data when a laptop is added/updated
+              fetchData();
             }}
+          />
+
+          {/* View IT Asset Modal */}
+          <ITAssetViewModal
+            open={isViewModalOpen}
+            onOpenChange={setIsViewModalOpen}
+            asset={viewingAsset}
           />
 
           {/* Delete Confirmation Dialog */}
           <ConfirmDialog
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
-            title="Delete Laptop"
-            description={`Are you sure you want to delete the laptop "${laptopToDelete?.name}"? This action cannot be undone.`}
+            title="Delete IT Asset"
+            description={`Are you sure you want to delete the asset "${assetToDelete?.nama}" (${assetToDelete?.nomor_asset})? This action cannot be undone.`}
             onConfirm={confirmDelete}
             confirmText="Delete"
             cancelText="Cancel"
           />
         </div>
-      </div>
     </div>
   );
 }

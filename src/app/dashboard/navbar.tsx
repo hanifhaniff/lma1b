@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, Menu, Laptop, Home, Settings, User, Plus, List, Ticket, Radio, File, Link as LinkIcon, ChevronDown, Satellite } from "lucide-react";
+import { Moon, Sun, Menu, Laptop, Home, Settings, User, Plus, List, Ticket, Radio, File, Link as LinkIcon, ChevronDown, Satellite, Package } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 
@@ -56,9 +56,9 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: Home,
   },
   {
-    title: "Laptops",
-    href: "/laptops",
-    icon: Laptop,
+    title: "IT Asset",
+    href: "/it-asset",
+    icon: Package,
   },
   {
     title: "Files",
