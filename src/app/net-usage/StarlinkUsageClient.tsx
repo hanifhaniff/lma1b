@@ -88,22 +88,33 @@ export default function StarlinkUsageClient({ initialUsages, loading }: Starlink
   const [successTitle, setSuccessTitle] = useState('');
 
   const fetchUsageData = async (term: string) => {
-    const trimmedTerm = term.trim();
-    const searchQuery = trimmedTerm ? `?search=${encodeURIComponent(trimmedTerm)}` : '';
-    const response = await fetch(`/api/starlink${searchQuery}`);
+    try {
+      const trimmedTerm = term.trim();
+      
+      // Import and use server action
+      const { getStarlinkUsages } = await import('./actions');
+      const allUsages = await getStarlinkUsages();
+      
+      // Filter client-side if there's a search term
+      const updatedUsages = trimmedTerm
+        ? allUsages.filter(usage => 
+            usage.unit_starlink.toLowerCase().includes(trimmedTerm.toLowerCase()) ||
+            usage.tanggal.includes(trimmedTerm)
+          )
+        : allUsages;
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch starlink usage data');
+      if (!trimmedTerm) {
+        setUsages(updatedUsages);
+      }
+
+      setFilteredUsages(updatedUsages);
+      setGroupedUsages(groupByDate(updatedUsages)); // Update grouped data as well
+    } catch (error) {
+      console.error('Error fetching starlink usage data:', error);
+      // Re-throw the original error with more context
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`Failed to fetch data: ${errorMessage}`);
     }
-
-    const updatedUsages = (await response.json()) as StarlinkUsage[];
-
-    if (!trimmedTerm) {
-      setUsages(updatedUsages);
-    }
-
-    setFilteredUsages(updatedUsages);
-    setGroupedUsages(groupByDate(updatedUsages)); // Update grouped data as well
   };
 
   // Handle search term changes

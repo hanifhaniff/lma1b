@@ -1,22 +1,23 @@
 'use server';
 
-import { supabase } from '@/lib/supabase';
+import { db } from '@/lib/db';
+import { starlinkUsage } from '@/lib/db/schema';
+import { eq, desc, and, ne } from 'drizzle-orm';
 import { StarlinkUsage, NewStarlinkUsage } from './types';
 
 // Fetch all starlink usage records
 export async function getStarlinkUsages(): Promise<StarlinkUsage[]> {
   try {
-    const { data, error } = await supabase
-      .from('starlink_usage')
-      .select('*')
-      .order('tanggal', { ascending: false });
-
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to fetch starlink usage records: ${error.message}`);
-    }
-
-    return (data as unknown as StarlinkUsage[]) || [];
+    const usages = await db.select().from(starlinkUsage).orderBy(desc(starlinkUsage.tanggal));
+    // Map the camelCase fields to snake_case for the frontend
+    return usages.map(u => ({
+      id: u.id,
+      tanggal: u.tanggal.toISOString().split('T')[0],
+      unit_starlink: u.unitStarlink,
+      total_pemakaian: Number(u.totalPemakaian),
+      created_at: u.createdAt?.toISOString() || '',
+      updated_at: u.updatedAt?.toISOString() || '',
+    }));
   } catch (error) {
     console.error('Error fetching starlink usage records:', error);
     throw error;
@@ -26,22 +27,16 @@ export async function getStarlinkUsages(): Promise<StarlinkUsage[]> {
 // Fetch a single starlink usage record by id
 export async function getStarlinkUsageById(id: number): Promise<StarlinkUsage | null> {
   try {
-    const { data, error } = await supabase
-      .from('starlink_usage')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned
-        return null;
-      }
-      console.error('Database error:', error);
-      throw new Error(`Failed to fetch starlink usage record: ${error.message}`);
-    }
-
-    return data as unknown as StarlinkUsage;
+    const [result] = await db.select().from(starlinkUsage).where(eq(starlinkUsage.id, id)).limit(1);
+    if (!result) return null;
+    return {
+      id: result.id,
+      tanggal: result.tanggal.toISOString().split('T')[0],
+      unit_starlink: result.unitStarlink,
+      total_pemakaian: Number(result.totalPemakaian),
+      created_at: result.createdAt?.toISOString() || '',
+      updated_at: result.updatedAt?.toISOString() || '',
+    };
   } catch (error) {
     console.error('Error fetching starlink usage record:', error);
     throw error;
@@ -51,18 +46,20 @@ export async function getStarlinkUsageById(id: number): Promise<StarlinkUsage | 
 // Create a new starlink usage record
 export async function createStarlinkUsage(usageData: NewStarlinkUsage): Promise<StarlinkUsage> {
   try {
-    const { data, error } = await supabase
-      .from('starlink_usage')
-      .insert([usageData as unknown as Record<string, unknown>])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to create starlink usage record: ${error.message}`);
-    }
-
-    return data as unknown as StarlinkUsage;
+    const [newUsage] = await db.insert(starlinkUsage).values({
+      tanggal: new Date(usageData.tanggal),
+      unitStarlink: usageData.unit_starlink,
+      totalPemakaian: usageData.total_pemakaian.toString(),
+    }).$returningId();
+    const [result] = await db.select().from(starlinkUsage).where(eq(starlinkUsage.id, newUsage.id));
+    return {
+      id: result.id,
+      tanggal: result.tanggal.toISOString().split('T')[0],
+      unit_starlink: result.unitStarlink,
+      total_pemakaian: Number(result.totalPemakaian),
+      created_at: result.createdAt?.toISOString() || '',
+      updated_at: result.updatedAt?.toISOString() || '',
+    };
   } catch (error) {
     console.error('Error creating starlink usage record:', error);
     throw error;
@@ -70,21 +67,23 @@ export async function createStarlinkUsage(usageData: NewStarlinkUsage): Promise<
 }
 
 // Update an existing starlink usage record
-export async function updateStarlinkUsage(id: number, updateData: Partial<StarlinkUsage>): Promise<StarlinkUsage> {
+export async function updateStarlinkUsage(id: number, updateData: Partial<NewStarlinkUsage>): Promise<StarlinkUsage> {
   try {
-    const { data, error } = await supabase
-      .from('starlink_usage')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to update starlink usage record: ${error.message}`);
-    }
-
-    return data as unknown as StarlinkUsage;
+    const updateValues: any = {};
+    if (updateData.tanggal) updateValues.tanggal = new Date(updateData.tanggal);
+    if (updateData.unit_starlink) updateValues.unitStarlink = updateData.unit_starlink;
+    if (updateData.total_pemakaian !== undefined) updateValues.totalPemakaian = updateData.total_pemakaian.toString();
+    
+    await db.update(starlinkUsage).set(updateValues).where(eq(starlinkUsage.id, id));
+    const [result] = await db.select().from(starlinkUsage).where(eq(starlinkUsage.id, id));
+    return {
+      id: result.id,
+      tanggal: result.tanggal.toISOString().split('T')[0],
+      unit_starlink: result.unitStarlink,
+      total_pemakaian: Number(result.totalPemakaian),
+      created_at: result.createdAt?.toISOString() || '',
+      updated_at: result.updatedAt?.toISOString() || '',
+    };
   } catch (error) {
     console.error('Error updating starlink usage record:', error);
     throw error;
@@ -94,42 +93,23 @@ export async function updateStarlinkUsage(id: number, updateData: Partial<Starli
 // Check if a record already exists for the same date and unit
 export async function checkDuplicateUsage(tanggal: string, unit_starlink: string, excludeId?: number): Promise<boolean> {
   try {
-    let query = supabase
-      .from('starlink_usage')
-      .select('id', { count: 'exact', head: true })
-      .eq('tanggal', tanggal)
-      .eq('unit_starlink', unit_starlink);
-
-    if (excludeId !== undefined) {
-      query = query.neq('id', excludeId);
-    }
-
-    const { count, error } = await query;
-
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to check duplicate usage: ${error.message}`);
-    }
-
-    return count !== null && count > 0;
+    const dateObj = new Date(tanggal);
+    const conditions = excludeId !== undefined
+      ? and(eq(starlinkUsage.tanggal, dateObj), eq(starlinkUsage.unitStarlink, unit_starlink), ne(starlinkUsage.id, excludeId))
+      : and(eq(starlinkUsage.tanggal, dateObj), eq(starlinkUsage.unitStarlink, unit_starlink));
+    
+    const results = await db.select().from(starlinkUsage).where(conditions).limit(1);
+    return results.length > 0;
   } catch (error) {
     console.error('Error checking duplicate usage:', error);
-    throw error;
+    return false; // Don't block operations on error
   }
 }
 
 // Delete a starlink usage record
 export async function deleteStarlinkUsage(id: number): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('starlink_usage')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Database error:', error);
-      throw new Error(`Failed to delete starlink usage record: ${error.message}`);
-    }
+    await db.delete(starlinkUsage).where(eq(starlinkUsage.id, id));
   } catch (error) {
     console.error('Error deleting starlink usage record:', error);
     throw error;

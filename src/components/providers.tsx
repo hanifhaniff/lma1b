@@ -1,40 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { ClerkProvider } from "@clerk/nextjs";
+import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  // Check if Clerk environment variables are available
-  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  
-  if (!clerkPublishableKey) {
-    console.warn("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not defined. Authentication features will not work.");
-    
-    return (
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem={false}
-        disableTransitionOnChange
-        storageKey="lma-theme"
-      >
-        {children}
-      </ThemeProvider>
-    );
-  }
-
+export function Providers({ children }: { children: React.ReactNode}) {
   return (
-    <ClerkProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem={false}
-        disableTransitionOnChange
-        storageKey="lma-theme"
-      >
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+      storageKey="lma-theme"
+    >
+      <AuthProvider>
         {children}
-      </ThemeProvider>
-    </ClerkProvider>
+        <Toaster />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

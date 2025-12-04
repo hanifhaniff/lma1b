@@ -1,97 +1,114 @@
 import { NextRequest } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase";
-import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { itAssets } from "@/lib/db/schema";
+import { desc, or, like, eq } from "drizzle-orm";
+import { requireAuth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    await requireAuth();
 
-    const supabase = await createSupabaseServerClient();
-    
     const { searchParams } = new URL(request.url);
     const searchTerm = searchParams.get('search');
     
-    let query = supabase
-      .from('it_assets')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let assets;
 
     if (searchTerm) {
       const searchPattern = `%${searchTerm}%`;
-      query = query.or(
-        `nama.ilike.${searchPattern},pic.ilike.${searchPattern},serial_number.ilike.${searchPattern},kategori.ilike.${searchPattern},nomor_asset.ilike.${searchPattern},nomor_bast.ilike.${searchPattern},keterangan.ilike.${searchPattern}`
-      );
+      assets = await db.select().from(itAssets)
+        .where(
+          or(
+            like(itAssets.nama, searchPattern),
+            like(itAssets.pic, searchPattern),
+            like(itAssets.serialNumber, searchPattern),
+            like(itAssets.kategori, searchPattern),
+            like(itAssets.nomorAsset, searchPattern),
+            like(itAssets.nomorBast, searchPattern),
+            like(itAssets.keterangan, searchPattern)
+          )
+        )
+        .orderBy(desc(itAssets.createdAt));
+    } else {
+      assets = await db.select().from(itAssets).orderBy(desc(itAssets.createdAt));
     }
     
-    const { data, error, status } = await query;
+    // Map camelCase fields to snake_case for frontend
+    const mappedAssets = assets.map(asset => ({
+      id: asset.id,
+      nama: asset.nama,
+      pic: asset.pic,
+      serial_number: asset.serialNumber,
+      tanggal_diterima: asset.tanggalDiterima,
+      kategori: asset.kategori,
+      nomor_asset: asset.nomorAsset,
+      nomor_bast: asset.nomorBast,
+      keterangan: asset.keterangan,
+      created_at: asset.createdAt,
+      updated_at: asset.updatedAt,
+    }));
     
-    if (error) {
-      console.error('Error fetching IT assets:', error);
-      
-      let errorMessage = `Failed to fetch IT assets: ${error.message}`;
-      if (status === 404 || error.code === '42P01') {
-        errorMessage = 'IT assets table does not exist in the database. Please create the table first using the SQL schema provided.';
-      } else if (error.code === '23505') {
-        errorMessage = 'Database constraint error: ' + error.message;
-      } else if (status === 401 || status === 403) {
-        errorMessage = 'Authentication error: ' + error.message;
-      }
-      
-      return Response.json({ error: errorMessage }, { status: status || 500 });
-    }
-    
-    return Response.json(data || []);
+    return Response.json(mappedAssets);
   } catch (error: unknown) {
     console.error('Unexpected error in GET /api/it-assets:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage === 'Unauthorized') {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     return Response.json({ error: `Internal server error: ${errorMessage}` }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    await requireAuth();
 
     const body = await request.json();
-    const supabase = await createSupabaseServerClient();
     
-    const { data, error, status } = await supabase
-      .from('it_assets')
-      .insert([body])
-      .select()
-      .single();
+    const [newAsset] = await db.insert(itAssets).values({
+      nama: body.nama,
+      pic: body.pic,
+      serialNumber: body.serial_number || body.serialNumber,
+      kategori: body.kategori,
+      nomorAsset: body.nomor_asset || body.nomorAsset,
+      nomorBast: body.nomor_bast || body.nomorBast || null,
+      tanggalDiterima: body.tanggal_diterima ? new Date(body.tanggal_diterima) : new Date(),
+      keterangan: body.keterangan || null,
+    }).$returningId();
+
+    const [asset] = await db.select().from(itAssets).where(eq(itAssets.id, newAsset.id));
     
-    if (error) {
-      console.error('Error creating IT asset:', error);
-      
-      let errorMessage = `Failed to create IT asset: ${error.message}`;
-      if (error.code === '23505') {
-        errorMessage = 'Asset number already exists. Please use a unique asset number.';
-      }
-      
-      return Response.json({ error: errorMessage }, { status: status || 500 });
-    }
+    // Map to frontend format
+    const mappedAsset = {
+      id: asset.id,
+      nama: asset.nama,
+      pic: asset.pic,
+      serial_number: asset.serialNumber,
+      tanggal_diterima: asset.tanggalDiterima,
+      kategori: asset.kategori,
+      nomor_asset: asset.nomorAsset,
+      nomor_bast: asset.nomorBast,
+      keterangan: asset.keterangan,
+      created_at: asset.createdAt,
+      updated_at: asset.updatedAt,
+    };
     
-    return Response.json(data);
+    return Response.json(mappedAsset);
   } catch (error: unknown) {
     console.error('Unexpected error in POST /api/it-assets:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage === 'Unauthorized') {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (errorMessage.includes('Duplicate entry')) {
+      return Response.json({ error: 'Asset number already exists. Please use a unique asset number.' }, { status: 400 });
+    }
     return Response.json({ error: `Internal server error: ${errorMessage}` }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    await requireAuth();
 
     const body = await request.json();
     const { id, ...updateData } = body;
@@ -100,40 +117,54 @@ export async function PUT(request: NextRequest) {
       return Response.json({ error: "IT asset ID is required" }, { status: 400 });
     }
     
-    const supabase = await createSupabaseServerClient();
+    const updateValues: any = {};
+    if (updateData.nama) updateValues.nama = updateData.nama;
+    if (updateData.pic) updateValues.pic = updateData.pic;
+    if (updateData.serial_number) updateValues.serialNumber = updateData.serial_number;
+    if (updateData.kategori) updateValues.kategori = updateData.kategori;
+    if (updateData.nomor_asset) updateValues.nomorAsset = updateData.nomor_asset;
+    if (updateData.nomor_bast !== undefined) updateValues.nomorBast = updateData.nomor_bast || null;
+    if (updateData.tanggal_diterima) updateValues.tanggalDiterima = new Date(updateData.tanggal_diterima);
+    if (updateData.keterangan !== undefined) updateValues.keterangan = updateData.keterangan || null;
     
-    const { data, error, status } = await supabase
-      .from('it_assets')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    await db.update(itAssets)
+      .set(updateValues)
+      .where(eq(itAssets.id, id));
+
+    const [asset] = await db.select().from(itAssets).where(eq(itAssets.id, id));
     
-    if (error) {
-      console.error('Error updating IT asset:', error);
-      
-      let errorMessage = `Failed to update IT asset: ${error.message}`;
-      if (error.code === '23505') {
-        errorMessage = 'Asset number already exists. Please use a unique asset number.';
-      }
-      
-      return Response.json({ error: errorMessage }, { status: status || 500 });
-    }
+    // Map to frontend format
+    const mappedAsset = {
+      id: asset.id,
+      nama: asset.nama,
+      pic: asset.pic,
+      serial_number: asset.serialNumber,
+      tanggal_diterima: asset.tanggalDiterima,
+      kategori: asset.kategori,
+      nomor_asset: asset.nomorAsset,
+      nomor_bast: asset.nomorBast,
+      keterangan: asset.keterangan,
+      created_at: asset.createdAt,
+      updated_at: asset.updatedAt,
+    };
     
-    return Response.json(data);
+    return Response.json(mappedAsset);
   } catch (error: unknown) {
     console.error('Unexpected error in PUT /api/it-assets:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage === 'Unauthorized') {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (errorMessage.includes('Duplicate entry')) {
+      return Response.json({ error: 'Asset number already exists. Please use a unique asset number.' }, { status: 400 });
+    }
     return Response.json({ error: `Internal server error: ${errorMessage}` }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    await requireAuth();
 
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
@@ -142,22 +173,15 @@ export async function DELETE(request: NextRequest) {
       return Response.json({ error: "IT asset ID is required" }, { status: 400 });
     }
     
-    const supabase = await createSupabaseServerClient();
-    
-    const { error, status } = await supabase
-      .from('it_assets')
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Error deleting IT asset:', error);
-      return Response.json({ error: `Failed to delete IT asset: ${error.message}` }, { status: status || 500 });
-    }
+    await db.delete(itAssets).where(eq(itAssets.id, id));
     
     return Response.json({ message: 'IT asset deleted successfully' });
   } catch (error: unknown) {
     console.error('Unexpected error in DELETE /api/it-assets:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage === 'Unauthorized') {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     return Response.json({ error: `Internal server error: ${errorMessage}` }, { status: 500 });
   }
 }

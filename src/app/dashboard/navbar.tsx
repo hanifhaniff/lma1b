@@ -3,14 +3,14 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Moon, Sun, Menu, Laptop, Home, Settings, User, Plus, List, Ticket, Radio, File, Link as LinkIcon, ChevronDown, Satellite, Package } from "lucide-react";
+import { Moon, Sun, Menu, Laptop, Home, Settings, User, Plus, List, Ticket, Radio, File, Link as LinkIcon, ChevronDown, Satellite, Package, UserPlus } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { UserButton } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LogOut } from "lucide-react";
 
 // Define TypeScript interfaces for better type safety
 interface NavigationItem {
@@ -81,6 +82,11 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     title: "Starlink",
     href: "/net-usage",
     icon: Satellite,
+  },
+  {
+    title: "Users",
+    href: "/register",
+    icon: UserPlus,
   }
 ];
 
@@ -88,6 +94,7 @@ export function DashboardNavbar() {
   const [open, setOpen] = useState(false);
   const { theme } = useTheme();
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <header className="border-b">
@@ -166,7 +173,32 @@ export function DashboardNavbar() {
         {/* Right side actions */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <UserButton afterSignOutUrl="/sign-in" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                <Image
+                  src="/favicon.ico"
+                  alt="User Avatar"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user?.name || user?.username}</p>
+                  {user?.email && <p className="text-xs leading-none text-muted-foreground">{user.email}</p>}
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout} className="cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Mobile menu */}
           <Sheet open={open} onOpenChange={setOpen}>

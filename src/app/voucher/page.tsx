@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/lib/auth-context';
 import { 
   Search, 
   ChevronLeft, 
@@ -91,8 +91,8 @@ const profileOptions = [
 ];
 
 export default function RuijiePage() {
-  // Clerk authentication
-  const { isLoaded, isSignedIn } = useUser();
+  // Auth
+  const { user, loading: authLoading } = useAuth();
 
   const [listId, setListId] = useState('6435153'); // Default to '1B Office'
 
@@ -179,10 +179,10 @@ export default function RuijiePage() {
 
   // Initial fetch on component mount
   useEffect(() => {
-    if (!isLoaded) return; // Don't fetch if user is not loaded
-    if (!isSignedIn) return; // Don't fetch if not signed in
+    if (authLoading) return; // Don't fetch if auth is loading
+    if (!user) return; // Don't fetch if not signed in
     fetchVouchers();
-  }, [isLoaded, isSignedIn, fetchVouchers]); // Fetch data when auth state or list changes
+  }, [authLoading, user, fetchVouchers]); // Fetch data when auth state or list changes
 
   // Handle refresh button click
   const handleRefresh = () => {
@@ -332,8 +332,8 @@ export default function RuijiePage() {
   const activeVouchers = vouchers.filter(voucher => voucher.status.toLowerCase() === 'active').length;
   const usedVouchers = vouchers.filter(voucher => voucher.usedQuota > 0).length;
 
-  // Handle Clerk authentication state
-  if (!isLoaded) {
+  // Handle auth state
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -344,7 +344,8 @@ export default function RuijiePage() {
     );
   }
 
-  if (isLoaded && !isSignedIn) {
+  // Middleware handles auth
+  if (false && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md">

@@ -5,9 +5,12 @@ import StarlinkUsagePageClient from './StarlinkUsagePageClient';
 export const dynamic = 'force-dynamic';
 
 export default async function StarlinkUsagePage() {
-  const initialUsages = await getStarlinkUsages();
-
-  return (
-    <StarlinkUsagePageClient initialUsages={initialUsages} />
-  );
+  try {
+    const initialUsages = await getStarlinkUsages();
+    return <StarlinkUsagePageClient initialUsages={initialUsages} />;
+  } catch (error) {
+    console.error('Error loading initial starlink usages:', error);
+    // Return component with empty data and error state
+    return <StarlinkUsagePageClient initialUsages={[]} />;
+  }
 }

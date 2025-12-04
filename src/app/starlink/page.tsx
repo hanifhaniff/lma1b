@@ -49,41 +49,32 @@ const StarlinkUsagePage = () => {
       try {
         setLoading(true);
 
-        // Fetch available months from the API
-        const monthsResponse = await fetch('/api/starlink?groupBy=month');
-        let availableMonthsFromApi: string[] = [];
-        if (monthsResponse.ok) {
-          const monthsData = await monthsResponse.json();
-          // Extract unique months from the data
-          availableMonthsFromApi = monthsData.map((item: any) => item.month);
-        }
+        // Import server actions
+        const { getAvailableMonths, getRawUsageData, getUsageByDateAndUnit } = await import('./actions');
 
-        // Use only the months that have actual data
+        // Fetch available months
+        const monthsData = await getAvailableMonths();
+        const availableMonthsFromApi = monthsData.map((item: any) => item.month);
         setAvailableMonths(availableMonthsFromApi.sort());
 
         // Fetch the raw data for monthly summary calculation
-        const rawResponse = await fetch('/api/starlink');
-        if (rawResponse.ok) {
-          const rawResult = await rawResponse.json();
-          setRawUsageData(rawResult);
-        }
+        const rawResult = await getRawUsageData();
+        setRawUsageData(rawResult);
 
-        let url = '';
+        // Fetch usage data by date and unit
+        let result;
         if (selectedMonth) {
           // If a specific month is selected, show daily data for that month
           const [year, month] = selectedMonth.split('-').map(Number);
           const lastDay = getLastDayOfMonth(year, month);
-          url = `/api/starlink?groupBy=dateAndUnit&startDate=${selectedMonth}-01&endDate=${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
+          const startDate = `${selectedMonth}-01`;
+          const endDate = `${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
+          result = await getUsageByDateAndUnit(startDate, endDate);
         } else {
           // Otherwise, show all daily data
-          url = '/api/starlink?groupBy=dateAndUnit';
+          result = await getUsageByDateAndUnit();
         }
-
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const result = await response.json();
+        
         setData(result);
 
         // Extract the unit keys from the first data point (excluding 'tanggal')

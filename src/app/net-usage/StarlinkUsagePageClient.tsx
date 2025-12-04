@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/lib/auth-context';
 import { StarlinkUsage } from './types';
 import StarlinkUsageClient from './StarlinkUsageClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ interface StarlinkUsagePageClientProps {
 }
 
 export default function StarlinkUsagePageClient({ initialUsages }: StarlinkUsagePageClientProps) {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, loading: authLoading } = useAuth();
   const [usages, setUsages] = useState<StarlinkUsage[]>(initialUsages);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,13 +24,9 @@ export default function StarlinkUsagePageClient({ initialUsages }: StarlinkUsage
     setLoading(true);
     setError(null);
     try {
-      // Use the server action directly
-      const response = await fetch('/api/starlink');
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-      const usagesData = await response.json();
+      // Import server action dynamically to avoid issues
+      const { getStarlinkUsages } = await import('./actions');
+      const usagesData = await getStarlinkUsages();
       setUsages(usagesData);
     } catch (error: unknown) {
       console.error('Error fetching starlink usage records:', error);
@@ -42,43 +38,19 @@ export default function StarlinkUsagePageClient({ initialUsages }: StarlinkUsage
   };
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (!authLoading && user) {
       // Data is already loaded from server component
       setUsages(initialUsages);
     }
-  }, [isLoaded, isSignedIn, initialUsages]);
+  }, [authLoading, user, initialUsages]);
 
-  if (!isLoaded) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-500" />
           <p className="text-gray-600 dark:text-gray-400 mt-2">Loading...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md mx-4">
-          <CardHeader className="text-center">
-            <Network className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-            <CardTitle className="text-xl">Access Denied</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Please sign in to access the starlink usage management system.
-            </p>
-            <Button
-              onClick={() => window.location.href = '/'}
-              className="w-full"
-            >
-              Sign In
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }

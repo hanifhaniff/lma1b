@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "./data-table";
 import { ITAsset } from "./types";
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { createColumns } from "./columns";
 
 export default function ITAssetPage() {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, loading: authLoading } = useAuth();
   const [assets, setAssets] = useState<ITAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,10 +76,10 @@ export default function ITAssetPage() {
   };
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    if (user) {
       fetchData();
     }
-  }, [isLoaded, isSignedIn]);
+  }, [user]);
 
   // Stats calculations
   const totalAssets = assets.length;
@@ -90,7 +90,7 @@ export default function ITAssetPage() {
 
   const columns = createColumns(handleEdit, handleDelete, handleView);
 
-  if (!isLoaded) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
@@ -101,7 +101,7 @@ export default function ITAssetPage() {
     );
   }
 
-  if (!isSignedIn) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Card className="w-full max-w-md mx-4">
